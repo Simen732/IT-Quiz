@@ -4,6 +4,7 @@ const authController = require('../controllers/authController');
 const { check } = require('express-validator');
 const authMiddleware = require('../middlewares/authMiddleware');
 const passport = require('passport');
+const crypto = require('crypto');
 
 // Validation rules
 const registerValidation = [
@@ -84,9 +85,19 @@ router.get('/reset-password/:token', authController.getResetPasswordPage);
 router.post('/reset-password/:token', resetPasswordValidation, authController.resetPassword);
 
 // Google OAuth routes
-router.get('/google', passport.authenticate('google', { 
-  scope: ['profile', 'email'] 
-}));
+router.get('/google', (req, res, next) => {
+  const deviceId = crypto.createHash('md5').update('template-app-vm').digest('hex');
+  
+  const authOptions = { 
+    scope: ['profile', 'email'],
+    state: JSON.stringify({
+      deviceId: deviceId,
+      deviceName: 'Template VM'
+    })
+  };
+  
+  passport.authenticate('google', authOptions)(req, res, next);
+});
 
 router.get('/google/callback', 
   passport.authenticate('google', { 
