@@ -179,7 +179,7 @@ exports.forgotPassword = async (req, res) => {
     if (!user) {
       return res.render('auth/forgot-password', {
         title: 'Forgot Password',
-        message: 'If an account with that email exists, a password reset link has been sent.',
+        message: 'Please check to see if you have put a valid email in the input field',
         messageType: 'success'
       });
     }
