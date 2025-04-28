@@ -1,6 +1,13 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
+const crypto = require('crypto');
+
+// Generate a stable device ID using the VM's IP address
+const generateDeviceId = () => {
+  const ip = process.env.APP_URL || '10.12.47.226';
+  return crypto.createHash('md5').update(ip).digest('hex').substring(0, 16);
+};
 
 module.exports = function(passport) {
   // Serialize user for the session
@@ -23,7 +30,12 @@ module.exports = function(passport) {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: `${process.env.APP_URL}/auth/google/callback`,
-    scope: ['profile', 'email']
+    scope: ['profile', 'email'],
+    // Add the device_id and device_name parameters for private IP use
+    pkce: true,
+    state: true,
+    deviceName: 'NAV Template VM',
+    deviceId: generateDeviceId()
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user already exists with this Google ID
