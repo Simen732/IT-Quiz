@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { check } = require('express-validator');
 const authMiddleware = require('../middlewares/authMiddleware');
+const passport = require('passport');
 
 // Validation rules
 const registerValidation = [
@@ -81,5 +82,17 @@ router.get('/forgot-password', authController.getForgotPasswordPage);
 router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
 router.get('/reset-password/:token', authController.getResetPasswordPage);
 router.post('/reset-password/:token', resetPasswordValidation, authController.resetPassword);
+
+// Google OAuth routes
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'] 
+}));
+
+router.get('/google/callback', 
+  passport.authenticate('google', { 
+    failureRedirect: '/auth/login' 
+  }),
+  authController.googleCallback
+);
 
 module.exports = router;

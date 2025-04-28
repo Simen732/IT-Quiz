@@ -4,11 +4,14 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const path = require('path');
+const passport = require('passport');
+const session = require('express-session');
 
 // Load environment variables
 dotenv.config();
 
-require("dotenv").config();
+// Initialize passport config
+require('./config/passport')(passport);
 
 // Initialize express app
 const app = express();
@@ -18,6 +21,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
+
+// Set up session
+app.use(session({
+  secret: process.env.JWT_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  }
+}));
+
+// Initialize passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Set up EJS as view engine
 app.set('view engine', 'ejs');
@@ -48,11 +66,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-
-
 app.get("*", (req, res) => {
     res.render("error", {message: "Siden finnes ikke"});
-}) 
+}); 
+
 // Start server
 const PORT = process.env.PORT || 6000;
 app.listen(PORT, () => {

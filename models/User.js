@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, 'Please provide a username'],
+    required: function() { return !this.googleId; }, // Not required if Google auth
     unique: true,
+    sparse: true,
     trim: true,
     minlength: [3, 'Username must be at least 3 characters long']
   },
@@ -21,9 +22,15 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
+    required: function() { return !this.googleId; }, // Not required if Google auth
     minlength: [8, 'Password must be at least 8 characters long']
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  displayName: String,
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   createdAt: {

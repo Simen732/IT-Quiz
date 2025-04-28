@@ -4,6 +4,12 @@ const User = require('../models/User');
 // Protect routes - only authenticated users can access
 exports.protect = async (req, res, next) => {
   try {
+    // Check if user is authenticated by Passport
+    if (req.isAuthenticated()) {
+      res.locals.user = req.user;
+      return next();
+    }
+
     // Get token from cookies
     const token = req.cookies.jwt;
 
@@ -32,6 +38,12 @@ exports.protect = async (req, res, next) => {
 // Check if user is logged in for views
 exports.isLoggedIn = async (req, res, next) => {
   try {
+    // Check if user is authenticated by Passport
+    if (req.isAuthenticated()) {
+      res.locals.user = req.user;
+      return next();
+    }
+
     if (req.cookies.jwt) {
       // Verify token
       const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
@@ -54,6 +66,11 @@ exports.isLoggedIn = async (req, res, next) => {
 
 // Redirect if already authenticated
 exports.redirectIfAuthenticated = async (req, res, next) => {
+  // Check if user is authenticated by Passport
+  if (req.isAuthenticated()) {
+    return res.redirect('/');
+  }
+
   if (req.cookies.jwt) {
     try {
       // Verify token
