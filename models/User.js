@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: function() { return !this.googleId; }, // Not required if Google auth
+    required: function() { return !this.googleId; },
     unique: true,
     sparse: true,
     trim: true,
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: function() { return !this.googleId; }, // Not required if Google auth
+    required: function() { return !this.googleId; },
     minlength: [8, 'Password must be at least 8 characters long']
   },
   googleId: {
@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     sparse: true
   },
   displayName: String,
+  profileImage: {
+    type: String,
+    default: 'default-avatar.png'  // Default profile image
+  },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   createdAt: {

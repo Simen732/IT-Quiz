@@ -27,20 +27,15 @@ module.exports = function(passport) {
   const appUrl = process.env.APP_URL || '';
   const isPrivateIp = appUrl.includes('10.') || appUrl.includes('192.168.') || appUrl.includes('172.');
   
-  // Configure Google Strategy with private IP handling
+  // Configure Google Strategy - simpler with proper domain
   const deviceId = generateDeviceId();
   const strategyOptions = {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${process.env.APP_URL}/auth/google/callback`,
-    // Try providing these options in all cases for private IPs
-    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
-    // Attempt to pass device parameters via state
-    state: true,
-    passReqToCallback: true
+    callbackURL: `${process.env.APP_URL}/auth/google/callback`
   };
 
-  passport.use(new GoogleStrategy(strategyOptions, async (req, accessToken, refreshToken, profile, done) => {
+  passport.use(new GoogleStrategy(strategyOptions, async (accessToken, refreshToken, profile, done) => {
     try {
       console.log("Google profile received:", {
         id: profile.id,

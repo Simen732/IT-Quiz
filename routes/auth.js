@@ -85,25 +85,13 @@ router.get('/reset-password/:token', authController.getResetPasswordPage);
 router.post('/reset-password/:token', resetPasswordValidation, authController.resetPassword);
 
 // Google OAuth routes
-router.get('/google', (req, res) => {
-  // Add device parameters to the query string
-  const deviceId = crypto.createHash('md5').update('template-vm').digest('hex');
-  const redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${process.env.GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.APP_URL + '/auth/google/callback')}` +
-    `&response_type=code` +
-    `&scope=${encodeURIComponent('profile email')}` +
-    `&device_id=${deviceId}` +
-    `&device_name=Template_VM`;
-  
-  res.redirect(redirectUrl);
-});
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'] 
+}));
 
-// Custom callback handler
-router.get('/google/callback', (req, res, next) => {
-  passport.authenticate('google', { 
-    failureRedirect: '/auth/login' 
-  })(req, res, next);
-}, authController.googleCallback);
+// Callback handler
+router.get('/google/callback', passport.authenticate('google', { 
+  failureRedirect: '/auth/login' 
+}), authController.googleCallback);
 
 module.exports = router;
