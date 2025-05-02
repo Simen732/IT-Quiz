@@ -7,7 +7,7 @@ const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
 
-// Load environment variables
+
 dotenv.config();
 
 // Initialize passport config
