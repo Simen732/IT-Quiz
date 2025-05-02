@@ -125,12 +125,26 @@ exports.login = async (req, res) => {
 
 // Logout user
 exports.logout = (req, res) => {
+  // Clear JWT cookie
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
   
-  res.redirect('/');
+  // Check if the user is authenticated with Passport (Google login)
+  if (req.isAuthenticated()) {
+    // Modern versions of Passport require a callback
+    req.logout(function(err) {
+      if (err) {
+        console.error('Error during logout:', err);
+      }
+      // Redirect after logout is complete
+      res.redirect('/');
+    });
+  } else {
+    // Regular JWT user, just redirect
+    res.redirect('/');
+  }
 };
 
 // Render register page
