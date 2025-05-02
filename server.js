@@ -44,10 +44,21 @@ app.set('views', path.join(__dirname, 'views'));
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Connect to MongoDB with more options
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 30000,
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  family: 4  // Force IPv4
+})
+.then(() => console.log('MongoDB connected successfully'))
+.catch((err) => {
+  console.error('MongoDB connection error details:', {
+    message: err.message,
+    code: err.code,
+    name: err.name
+  });
+});
 
 // Import routes
 const indexRoutes = require('./routes/index');

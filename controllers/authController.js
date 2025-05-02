@@ -21,7 +21,7 @@ exports.register = async (req, res) => {
       return res.status(400).render('auth/register', {
         title: 'Register',
         errors: errors.array(),
-        user: req.body
+        formData: req.body  // Changed from user: req.body
       });
     }
 
@@ -137,7 +137,7 @@ exports.logout = (req, res) => {
 exports.getRegisterPage = (req, res) => {
   res.render('auth/register', {
     title: 'Register',
-    user: {},
+    formData: {},  // Change variable name to formData
     errors: []
   });
 };
@@ -146,7 +146,7 @@ exports.getRegisterPage = (req, res) => {
 exports.getLoginPage = (req, res) => {
   res.render('auth/login', {
     title: 'Login',
-    user: {},
+    formData: {},  // Change variable name to formData
     errors: []
   });
 };
