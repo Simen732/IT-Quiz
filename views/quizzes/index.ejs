@@ -1,0 +1,92 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4">Alle Quizzer</h1>
+      
+      <div class="row mb-4">
+        <div class="col-md-8">
+          <div class="d-flex">
+            <a href="/quizzes/category/Programmering" class="btn btn-outline-primary me-2">Programmering</a>
+            <a href="/quizzes/category/Databasesystemer" class="btn btn-outline-primary me-2">Databasesystemer</a>
+            <a href="/quizzes/category/Nettverk" class="btn btn-outline-primary me-2">Nettverk</a>
+            <a href="/quizzes/category/IT-sikkerhet" class="btn btn-outline-primary me-2">IT-sikkerhet</a>
+            <a href="/quizzes/category/Annet" class="btn btn-outline-primary">Annet</a>
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <a href="/quizzes/create" class="btn btn-primary">Lag ny quiz</a>
+        </div>
+      </div>
+      
+      <% if (typeof quizzes !== 'undefined' && quizzes.length > 0) { %>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          <% quizzes.forEach(function(quiz) { %>
+            <div class="col">
+              <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span class="badge bg-<%= quiz.difficulty === 'Lett' ? 'success' : quiz.difficulty === 'Middels' ? 'warning' : 'danger' %>">
+                    <%= quiz.difficulty %>
+                  </span>
+                  <span class="badge bg-info"><%= quiz.category %></span>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title"><%= quiz.title %></h5>
+                  <p class="card-text text-truncate"><%= quiz.description %></p>
+                  <div class="d-flex align-items-center mb-3">
+                    <img src="/uploads/<%= quiz.createdBy.profileImage %>" alt="Profile" class="rounded-circle me-2" style="width: 24px; height: 24px;">
+                    <small class="text-muted"><%= quiz.createdBy.username || 'Ukjent' %></small>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <small class="text-muted">
+                      <i class="bi bi-question-circle"></i> <%= quiz.questions.length %> spørsmål
+                    </small>
+                    <small class="text-muted">
+                      <i class="bi bi-hand-thumbs-up"></i> <%= quiz.likes %>
+                      <i class="bi bi-controller ms-2"></i> <%= quiz.timesPlayed %>
+                    </small>
+                  </div>
+                </div>
+                <div class="card-footer">
+                  <a href="/quizzes/<%= quiz._id %>" class="btn btn-outline-primary w-100">Se detaljer</a>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+        
+        <% if (totalPages > 1) { %>
+          <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+              <% if (currentPage > 1) { %>
+                <li class="page-item">
+                  <a class="page-link" href="/quizzes?page=<%= currentPage - 1 %>">&laquo; Forrige</a>
+                </li>
+              <% } %>
+              
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                  <a class="page-link" href="/quizzes?page=<%= i %>"><%= i %></a>
+                </li>
+              <% } %>
+              
+              <% if (currentPage < totalPages) { %>
+                <li class="page-item">
+                  <a class="page-link" href="/quizzes?page=<%= currentPage + 1 %>">Neste &raquo;</a>
+                </li>
+              <% } %>
+            </ul>
+          </nav>
+        <% } %>
+      <% } else { %>
+        <div class="alert alert-info">
+          <p>Ingen quizzer funnet. Vær den første til å <a href="/quizzes/create">lage en quiz</a>!</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

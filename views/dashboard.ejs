@@ -1,20 +1,100 @@
-<%- include('partials/header') %>
-<%- include('partials/navbar') %>
+<%- include('./partials/header') %>
+<%- include('./partials/navbar') %>
 
 <div class="container mt-5">
   <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <div class="card">
-        <div class="card-header bg-success text-white">
-          <h2 class="mb-0">Dashboard</h2>
+    <div class="col-12">
+      <h1 class="mb-4">Dashboard</h1>
+      
+      <% if (currentUser.role === 'admin') { %>
+        <div class="alert alert-info">
+          <p>Du er logget inn som administrator. <a href="/admin" class="alert-link">Gå til admin panel</a></p>
         </div>
+      <% } %>
+      
+      <div class="card mb-4">
         <div class="card-body">
-          <h4>Welcome, <%= user.username %>!</h4>
-          <p>This is your personal dashboard.</p>
-          <p>Email: <%= user.email %></p>
-          <p>Account created: <%= user.createdAt.toLocaleDateString() %></p>
+          <h2 class="card-title">Min profil</h2>
+          <div class="d-flex align-items-center mb-3">
+            <img src="/uploads/<%= currentUser.profileImage %>" alt="Profile Image" class="rounded-circle me-3" style="width: 64px; height: 64px; object-fit: cover;">
+            <div>
+              <h5><%= currentUser.username || currentUser.displayName %></h5>
+              <p class="text-muted mb-0"><%= currentUser.email %></p>
+            </div>
+          </div>
+          <a href="/profile" class="btn btn-outline-primary">Rediger profil</a>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h2 class="card-title">Mine quizzer</h2>
+              <p>Lag og administrer dine egne IT-quizzer.</p>
+              <a href="/quizzes/create" class="btn btn-primary mb-3">Lag ny quiz</a>
+              
+              <% if (typeof userQuizzes !== 'undefined' && userQuizzes.length > 0) { %>
+                <div class="list-group">
+                  <% userQuizzes.forEach(function(quiz) { %>
+                    <a href="/quizzes/<%= quiz._id %>" class="list-group-item list-group-item-action">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1"><%= quiz.title %></h5>
+                        <small><%= quiz.isPublic ? 'Offentlig' : 'Privat' %></small>
+                      </div>
+                      <p class="mb-1"><%= quiz.description %></p>
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Kategori: <%= quiz.category %></small>
+                        <small class="text-muted">Spilt <%= quiz.timesPlayed %> ganger</small>
+                      </div>
+                    </a>
+                  <% }); %>
+                </div>
+              <% } else { %>
+                <div class="alert alert-warning">
+                  <p class="mb-0">Du har ikke laget noen quizzer ennå.</p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h2 class="card-title">Populære quizzer</h2>
+              <p>Prøv disse populære quizzene laget av andre brukere.</p>
+              
+              <% if (typeof popularQuizzes !== 'undefined' && popularQuizzes.length > 0) { %>
+                <div class="list-group">
+                  <% popularQuizzes.forEach(function(quiz) { %>
+                    <a href="/quizzes/<%= quiz._id %>" class="list-group-item list-group-item-action">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1"><%= quiz.title %></h5>
+                        <small>Laget av <%= quiz.createdBy.username || 'Ukjent' %></small>
+                      </div>
+                      <p class="mb-1"><%= quiz.description %></p>
+                      <div class="d-flex justify-content-between">
+                        <small class="text-muted">Kategori: <%= quiz.category %></small>
+                        <small class="text-muted">❤️ <%= quiz.likes %> | 🎮 <%= quiz.timesPlayed %></small>
+                      </div>
+                    </a>
+                  <% }); %>
+                </div>
+                <div class="mt-3">
+                  <a href="/quizzes" class="btn btn-outline-primary">Se alle quizzer</a>
+                </div>
+              <% } else { %>
+                <div class="alert alert-info">
+                  <p class="mb-0">Ingen populære quizzer tilgjengelig enda. Vær den første til å lage en!</p>
+                </div>
+              <% } %>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<%- include('./partials/footer') %>

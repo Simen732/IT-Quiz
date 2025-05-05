@@ -1,0 +1,159 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid mt-5">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="/admin">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin/users">
+              <i class="bi bi-people"></i> Administrer Brukere
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/quizzes">
+              <i class="bi bi-card-list"></i> Administrer Quizzer
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">
+              <i class="bi bi-arrow-left"></i> Tilbake til Dashboard
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Administrer Brukere</h1>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Alle Brukere</h5>
+            <span class="badge bg-primary"><%= totalUsers %> totalt</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-striped align-middle mb-0">
+            <thead class="bg-light">
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Bruker</th>
+                <th scope="col">E-post</th>
+                <th scope="col">Registrert</th>
+                <th scope="col">Role</th>
+                <th scope="col">Handlinger</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (users && users.length > 0) { %>
+                <% users.forEach((user, index) => { %>
+                  <tr>
+                    <td><%= (currentPage - 1) * 10 + index + 1 %></td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <img src="/uploads/<%= user.profileImage %>" alt="Profile" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <div>
+                          <div class="fw-bold"><%= user.username || user.displayName || 'Ingen brukernavn' %></div>
+                          <div class="small text-muted">ID: <%= user._id %></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><%= user.email %></td>
+                    <td><%= new Date(user.createdAt).toLocaleDateString('no-NO') %></td>
+                    <td>
+                      <span class="badge bg-<%= user.role === 'admin' ? 'danger' : 'primary' %>">
+                        <%= user.role === 'admin' ? 'Admin' : 'Bruker' %>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="btn-group">
+                        <% if (user._id.toString() !== currentUser._id.toString()) { %>
+                          <form action="/admin/users/<%= user._id %>/toggle-admin" method="POST" class="me-2">
+                            <button type="submit" class="btn btn-sm btn-<%= user.role === 'admin' ? 'secondary' : 'success' %>">
+                              <%= user.role === 'admin' ? 'Fjern Admin' : 'Gjør til Admin' %>
+                            </button>
+                          </form>
+                          <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal<%= user._id %>">
+                            Slett
+                          </button>
+                        <% } else { %>
+                          <span class="text-muted">Nåværende bruker</span>
+                        <% } %>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Delete User Modal -->
+                  <div class="modal fade" id="deleteUserModal<%= user._id %>" tabindex="-1" aria-labelledby="deleteUserModalLabel<%= user._id %>" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="deleteUserModalLabel<%= user._id %>">Bekreft sletting av bruker</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p>Er du sikker på at du vil slette brukeren <strong><%= user.username || user.displayName || user.email %></strong>?</p>
+                          <p class="text-danger"><strong>Dette vil også slette alle quizzer og data tilknyttet denne brukeren. Handlingen kan ikke angres.</strong></p>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                          <form action="/admin/users/<%= user._id %>/delete" method="POST">
+                            <button type="submit" class="btn btn-danger">Slett bruker</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="6" class="text-center py-3">Ingen brukere funnet</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+        
+        <% if (totalPages > 1) { %>
+          <div class="card-footer">
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-center mb-0">
+                <% if (currentPage > 1) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="/admin/users?page=<%= currentPage - 1 %>">&laquo; Forrige</a>
+                  </li>
+                <% } %>
+                
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                  <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="/admin/users?page=<%= i %>"><%= i %></a>
+                  </li>
+                <% } %>
+                
+                <% if (currentPage < totalPages) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="/admin/users?page=<%= currentPage + 1 %>">Neste &raquo;</a>
+                  </li>
+                <% } %>
+              </ul>
+            </nav>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

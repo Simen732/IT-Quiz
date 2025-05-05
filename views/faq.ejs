@@ -1,0 +1,153 @@
+<%- include('./partials/header') %>
+<%- include('./partials/navbar') %>
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card mb-5">
+        <div class="card-header bg-primary text-white">
+          <h1 class="h3 mb-0">Ofte Stilte Spørsmål</h1>
+        </div>
+        <div class="card-body">
+          <div class="accordion" id="faqAccordion">
+            <!-- General Questions -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingGeneral">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneral" aria-expanded="true" aria-controls="collapseGeneral">
+                  Generelle spørsmål
+                </button>
+              </h2>
+              <div id="collapseGeneral" class="accordion-collapse collapse show" aria-labelledby="headingGeneral" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <div class="mb-4">
+                    <h5>Hva er IT-Quiz?</h5>
+                    <p>IT-Quiz er en plattform der brukere kan lage, dele og ta quizzer om IT-relaterte temaer. Plattformen er utviklet for å hjelpe studenter og IT-profesjonelle med å teste og forbedre sin kunnskap innen forskjellige IT-områder.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Er IT-Quiz gratis å bruke?</h5>
+                    <p>Ja, IT-Quiz er helt gratis å bruke. Du trenger bare å registrere deg med en gyldig e-postadresse eller ved å logge inn med Google-kontoen din.</p>
+                  </div>
+                  
+                  <div>
+                    <h5>Må jeg være logget inn for å ta en quiz?</h5>
+                    <p>Du kan se alle offentlige quizzer uten å være logget inn, men for å ta en quiz, lagre resultater, og for å like eller lage quizzer, må du være registrert og logget inn.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quiz Taking Questions -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingTaking">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTaking" aria-expanded="false" aria-controls="collapseTaking">
+                  Spørsmål om å ta quizzer
+                </button>
+              </h2>
+              <div id="collapseTaking" class="accordion-collapse collapse" aria-labelledby="headingTaking" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <div class="mb-4">
+                    <h5>Hvordan tar jeg en quiz?</h5>
+                    <p>For å ta en quiz, bla gjennom tilgjengelige quizzer fra hovedsiden eller bruk kategorier for å finne en quiz som interesserer deg. Klikk på "Se detaljer" for å se mer informasjon om quizen, og klikk deretter på "Start Quiz" for å begynne.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Hvordan fungerer tidsbegrensningen?</h5>
+                    <p>Hvert spørsmål har en tidsbegrensning (vanligvis mellom 15 og 60 sekunder). Du må svare innen denne tidsrammen, ellers anses spørsmålet som ubesvart og du får ikke poeng for det.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Hvilke typer spørsmål kan jeg møte i en quiz?</h5>
+                    <p>IT-Quiz støtter fire typer spørsmål:</p>
+                    <ul>
+                      <li><strong>Flervalgsspørsmål:</strong> Velg ett riktig svar fra flere alternativer.</li>
+                      <li><strong>Sant/Usant:</strong> Velg om en påstand er sann eller falsk.</li>
+                      <li><strong>Fyll inn ordet:</strong> Skriv inn det riktige svaret i et tekstfelt.</li>
+                      <li><strong>Koble sammen:</strong> Match elementer fra venstre kolonne med korresponderende elementer fra høyre kolonne.</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h5>Kan jeg ta samme quiz flere ganger?</h5>
+                    <p>Ja, du kan ta samme quiz så mange ganger du vil. Dette er nyttig for å teste din fremgang og forbedre din kunnskap.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quiz Creation Questions -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingCreation">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCreation" aria-expanded="false" aria-controls="collapseCreation">
+                  Spørsmål om å lage quizzer
+                </button>
+              </h2>
+              <div id="collapseCreation" class="accordion-collapse collapse" aria-labelledby="headingCreation" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <div class="mb-4">
+                    <h5>Hvordan lager jeg en quiz?</h5>
+                    <p>For å lage en quiz, klikk på "Lag ny quiz" på dashboard-siden eller quizz-oversikten. Du vil bli bedt om å fylle ut grunnleggende informasjon om quizen, som tittel, beskrivelse, kategori og vanskelighetsgrad. Deretter kan du legge til spørsmål.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Hvor mange spørsmål kan jeg legge til i en quiz?</h5>
+                    <p>Det er ingen streng begrensning på antall spørsmål, men vi anbefaler mellom 5 og 20 spørsmål for en balansert quiz-opplevelse.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Kan jeg redigere en quiz etter at den er publisert?</h5>
+                    <p>Ja, du kan legge til flere spørsmål i din quiz når som helst. For å gjøre dette, gå til quiz-detaljer og klikk på "Legg til spørsmål".</p>
+                  </div>
+                  
+                  <div>
+                    <h5>Hvordan kan jeg slette en quiz jeg har laget?</h5>
+                    <p>For å slette en quiz, gå til quiz-detaljer og klikk på "Slett" knappen. Du vil bli bedt om å bekrefte slettingen. Merk at dette vil permanent slette quizen og alle tilknyttede data.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Account Questions -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingAccount">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAccount" aria-expanded="false" aria-controls="collapseAccount">
+                  Spørsmål om konto og profil
+                </button>
+              </h2>
+              <div id="collapseAccount" class="accordion-collapse collapse" aria-labelledby="headingAccount" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  <div class="mb-4">
+                    <h5>Hvordan oppretter jeg en konto?</h5>
+                    <p>Du kan registrere deg med en e-postadresse og passord, eller bruke "Logg inn med Google" for en raskere registrering. Klikk på "Registrer" i navigasjonsmenyen for å komme i gang.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Hvordan endrer jeg profilbildet mitt?</h5>
+                    <p>For å endre profilbilde, gå til profilen din ved å klikke på brukerikonet i navigasjonsmenyen og velg "Profil". Der kan du laste opp et nytt profilbilde.</p>
+                  </div>
+                  
+                  <div class="mb-4">
+                    <h5>Hvordan endrer jeg passordet mitt?</h5>
+                    <p>Gå til profilsiden din og finn seksjonen for passordendring. Du vil bli bedt om å oppgi ditt nåværende passord samt det nye passordet du ønsker å bruke.</p>
+                  </div>
+                  
+                  <div>
+                    <h5>Jeg har glemt passordet mitt. Hva gjør jeg?</h5>
+                    <p>På innloggingssiden, klikk på "Glemt passord?" lenken. Du vil bli bedt om å oppgi din e-postadresse, og vi vil sende deg en lenke for å tilbakestille passordet ditt.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-5">
+            <h4>Har du flere spørsmål?</h4>
+            <p>Hvis du ikke finner svaret på spørsmålet ditt her, kan du kontakte oss ved å sende en e-post til <a href="mailto:support@it-quiz.no">support@it-quiz.no</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/footer') %>

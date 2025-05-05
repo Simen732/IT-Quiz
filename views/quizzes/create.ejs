@@ -1,0 +1,116 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h1 class="h3 mb-0">Opprett ny Quiz</h1>
+        </div>
+        <div class="card-body">
+          <% if (typeof message !== 'undefined') { %>
+            <div class="alert alert-danger">
+              <%= message %>
+            </div>
+          <% } %>
+          
+          <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                <% errors.forEach(function(error) { %>
+                  <li><%= error.msg %></li>
+                <% }); %>
+              </ul>
+            </div>
+          <% } %>
+          
+          <form action="/quizzes/create" method="POST">
+            <div class="mb-3">
+              <label for="title" class="form-label">Quiz tittel</label>
+              <input type="text" class="form-control" id="title" name="title" 
+                     value="<%= typeof formData !== 'undefined' ? formData.title : '' %>" required>
+              <div class="form-text">Gi quizen din en beskrivende tittel (minst 3 tegn).</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="description" class="form-label">Beskrivelse</label>
+              <textarea class="form-control" id="description" name="description" rows="3" required><%= typeof formData !== 'undefined' ? formData.description : '' %></textarea>
+              <div class="form-text">Beskriv kort hva quizen handler om og hva brukerne vil lære.</div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="category" class="form-label">Kategori</label>
+                <select class="form-select" id="category" name="category" required>
+                  <option value="" disabled <%= typeof formData === 'undefined' ? 'selected' : '' %>>Velg kategori</option>
+                  <% categories.forEach(function(category) { %>
+                    <option value="<%= category %>" <%= typeof formData !== 'undefined' && formData.category === category ? 'selected' : '' %>><%= category %></option>
+                  <% }); %>
+                </select>
+                <div class="form-text">Velg den kategori som best beskriver quizen din.</div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="difficulty" class="form-label">Vanskelighetsgrad</label>
+                <select class="form-select" id="difficulty" name="difficulty" required>
+                  <option value="" disabled <%= typeof formData === 'undefined' ? 'selected' : '' %>>Velg vanskelighetsgrad</option>
+                  <% difficulties.forEach(function(level) { %>
+                    <option value="<%= level %>" <%= typeof formData !== 'undefined' && formData.difficulty === level ? 'selected' : '' %>><%= level %></option>
+                  <% }); %>
+                </select>
+                <div class="form-text">Angi hvor utfordrende quizen er.</div>
+              </div>
+            </div>
+            
+            <div class="mb-4 form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="isPublic" name="isPublic" <%= typeof formData !== 'undefined' && formData.isPublic ? 'checked' : 'checked' %>>
+              <label class="form-check-label" for="isPublic">Gjør quizen offentlig</label>
+              <div class="form-text">Offentlige quizzer er synlige for alle brukere. Private quizzer er bare synlige for deg.</div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+              <a href="/dashboard" class="btn btn-outline-secondary">Avbryt</a>
+              <button type="submit" class="btn btn-primary">Neste: Legg til spørsmål</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Tips for å lage en god quiz</h5>
+          <ul class="mb-0">
+            <li>Lag spørsmål med varierende vanskelighetsgrad for å holde på interessen</li>
+            <li>Hold spørsmålsteksten klar og konsis</li>
+            <li>Bruk forklaringer til å gi mer kontekst for riktige svar</li>
+            <li>Bruk ulike spørsmålstyper for en mer engasjerende opplevelse</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Add client-side form validation if needed
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+      let valid = true;
+      
+      // Example validation for title length
+      const title = document.getElementById('title').value;
+      if (title.trim().length < 3) {
+        valid = false;
+        alert('Quiz tittel må være minst 3 tegn.');
+      }
+      
+      if (!valid) {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema({
     required: function() { return !this.googleId; },
     minlength: [8, 'Password must be at least 8 characters long']
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
   googleId: {
     type: String,
     unique: true,

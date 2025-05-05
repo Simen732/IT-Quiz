@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
-
+const authMiddleware = require('./middlewares/authMiddleware'); // Add this line
 
 dotenv.config();
 
@@ -37,6 +37,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Apply the isLoggedIn middleware globally (before route handlers)
+app.use(authMiddleware.isLoggedIn);
+
 // Set up EJS as view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -63,10 +66,14 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Import routes
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
+const quizRoutes = require('./routes/quiz');
+const adminRoutes = require('./routes/admin');
 
 // Use routes
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
+app.use('/quizzes', quizRoutes);
+app.use('/admin', adminRoutes);
  
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,22 +1,391 @@
+/* Base styles and layout */
 body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #050014;
+  color: #e0e0ff;
+  position: relative;
+  overflow-x: hidden;
+  font-family: 'Roboto', sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(60, 0, 190, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(33, 0, 138, 0.08) 0%, transparent 50%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 main {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
+/* Refined futuristic color scheme */
+:root {
+  --primary-color: #21008a;
+  --primary-hover: #3500d3;
+  --primary-faded: rgba(33, 0, 138, 0.5);
+  --accent-color: #00d4ff;
+  --accent-hover: #71e7ff;
+  --dark-bg: #050014;
+  --card-bg: rgba(17, 17, 34, 0.7);
+  --card-border: rgba(105, 50, 255, 0.2);
+  --card-glow: rgba(105, 50, 255, 0.1);
+  --text-primary: #f0f0ff;
+  --text-secondary: #c0c0e0;
+  --text-muted: #8585b1;
+  --success: #00cc8e;
+  --warning: #ffaa00;
+  --danger: #ff3377;
+  --border-radius: 0.4rem;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--accent-color);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  margin-bottom: 1.2rem;
+}
+
+/* Container */
+.container {
+  padding: 1.2rem;
+}
+
+/* Button styles - simplified */
+.btn {
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  position: relative;
+  transition: all 0.25s ease;
+  border: none;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: var(--primary-color) !important;
+  border: 1px solid var(--primary-color) !important;
+  box-shadow: 0 2px 5px rgba(53, 0, 211, 0.2);
+  color: white !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(53, 0, 211, 0.3);
+}
+
+.btn-outline-primary {
+  background-color: transparent !important;
+  color: var(--accent-color) !important;
+  border: 1px solid var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+  background: var(--primary-faded) !important;
+  color: white !important;
+}
+
+.btn-outline-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--text-muted);
+}
+
+.btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+/* Card styling - simplified */
 .card {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  overflow: hidden;
 }
 
-.card-header {
-  font-weight: bold;
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Existing styles */
+.card .card-header {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--card-border);
+  padding: 0.8rem 1rem;
+}
+
+.card .card-body {
+  padding: 1.1rem;
+}
+
+.card .card-footer {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--card-border);
+  padding: 0.8rem 1rem;
+}
+
+.card-title {
+  color: #ffffff !important;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.card-text {
+  color: rgba(240, 240, 255, 0.95) !important;
+  line-height: 1.5;
+}
+
+/* Badge styling */
+.badge {
+  padding: 0.4em 0.7em;
+  border-radius: 3px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.bg-success {
+  background-color: var(--success) !important;
+}
+
+.bg-warning {
+  background-color: var(--warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--danger) !important;
+}
+
+/* Improve difficulty badge contrast */
+.badge.bg-success {
+  background-color: #00cc8e !important;
+  color: #000000 !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.badge.bg-warning {
+  background-color: #ffaa00 !important;
+  color: #000000 !important; 
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.badge.bg-danger {
+  background-color: #ff3377 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Make category badge more readable */
+.badge.bg-info, 
+span.badge[style*="background-color: #21008a"] {
+  background-color: #5025e6 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Form controls */
+.form-control, .form-select {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(105, 50, 255, 0.2);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  padding: 0.7rem 0.9rem;
+  transition: all 0.25s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.15rem rgba(0, 212, 255, 0.15);
+  color: white;
+}
+
+.form-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: rgba(5, 0, 20, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  padding: 0.6rem 1.2rem;
+}
+
+.navbar-brand {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: 0.7px;
+}
+
+.navbar-brand:hover {
+  color: var(--accent-hover);
+}
+
+.navbar-nav .nav-link {
+  color: var(--text-primary);
+  margin: 0 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  transition: all 0.25s ease;
+}
+
+.navbar-nav .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--accent-color);
+  transition: all 0.25s ease;
+  transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--accent-color);
+}
+
+.navbar-nav .nav-link:hover::after {
+  width: 40%;
+}
+
+.navbar-nav .nav-link.active {
+  color: var(--accent-color);
+}
+
+.navbar-nav .nav-link.active::after {
+  width: 60%;
+}
+
+.navbar .dropdown-menu {
+  background-color: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 12rem;
+  margin-top: 0.5rem;
+}
+
+.navbar .dropdown-item {
+  color: var(--text-primary);
+  padding: 0.6rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.navbar .dropdown-item:hover, 
+.navbar .dropdown-item:focus {
+  background-color: rgba(33, 0, 138, 0.3);
+  color: var(--accent-color);
+}
+
+.navbar .dropdown-divider {
+  border-color: var(--card-border);
+}
+
+.btn-nav-highlight {
+  background-color: rgba(33, 0, 138, 0.3);
+  border-radius: 4px;
+}
+
+.btn-nav-highlight:hover {
+  background-color: var(--primary-color);
+}
+
+.navbar-toggler {
+  border: 1px solid rgba(105, 50, 255, 0.3);
+  padding: 0.3rem 0.5rem;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.25);
+}
+
+/* Alert styling */
+.alert {
+  background-color: rgba(17, 17, 34, 0.7);
+  backdrop-filter: blur(5px);
+  border: 1px solid;
+  border-radius: var(--border-radius);
+  padding: 0.8rem 1.2rem;
+}
+
+.alert-primary {
+  border-color: var(--primary-color);
+  color: var(--text-primary);
+}
+
+.alert-info {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.alert-success {
+  border-color: var(--success);
+  color: var(--text-primary);
+}
+
+.alert-warning {
+  border-color: var(--warning);
+  color: var(--text-primary);
+}
+
+.alert-danger {
+  border-color: var(--danger);
+  color: var(--text-primary);
+}
+
+/* Pagination */
+.pagination {
+  gap: 0.2rem;
+}
+
+.pagination .page-item .page-link {
+  background-color: rgba(17, 17, 34, 0.5);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+  padding: 0.4rem 0.8rem;
+  transition: all 0.25s ease;
+}
+
+.pagination .page-item .page-link:hover {
+  background-color: var(--primary-faded);
+  color: white;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+/* Fix pagination text colors */
+.pagination .page-link.text-dark {
+  color: var(--text-primary) !important;
+}
 
 /* Profile styles */
 .profile-image-container {
@@ -26,8 +395,9 @@ main {
   position: relative;
   overflow: hidden;
   border-radius: 50%;
-  background-color: #f1f1f1;
-  border: 3px solid #007bff;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
 }
 
 .profile-image {
@@ -36,4 +406,436 @@ main {
   object-fit: cover;
 }
 
-/* Add link to profile in navbar */
+/* Table styling */
+.table {
+  background-color: rgba(17, 17, 34, 0.5);
+  color: var(--text-primary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.table thead th {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--accent-color);
+  font-weight: 500;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--card-border);
+  transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(33, 0, 138, 0.1);
+}
+
+/* Subtle animations - reduced */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(53, 0, 211, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(53, 0, 211, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(53, 0, 211, 0);
+  }
+}
+
+.pulse {
+  animation: pulse 2.5s infinite;
+}
+
+/* Animation styles - simplified */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+/* Particle animation - more subtle */
+@keyframes float-particle {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+.particle {
+  position: fixed;
+  background-color: var(--accent-color);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float-particle linear infinite;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+/* Grid background - more subtle */
+.grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(33, 0, 138, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(33, 0, 138, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-position: center center;
+  z-index: -2;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* Custom scrollbar - simplified */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* Focus styles */
+*:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.3) !important;
+}
+
+/* Dark text on dark background prevention */
+.text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* Quiz specific styles */
+.quiz-header {
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.8rem;
+}
+
+/* Progress bar */
+.progress {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius);
+  height: 6px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: var(--primary-color);
+  border-radius: var(--border-radius);
+}
+
+/* Text color fixes */
+.text-muted, .small, .text-secondary, .text-dark {
+  color: var(--text-secondary) !important;
+}
+
+/* Make sure small text has enough contrast */
+small, .small {
+  color: #d0d0e8 !important;
+}
+
+/* Fix Bootstrap's text colors */
+.text-body {
+  color: var(--text-primary) !important;
+}
+
+/* Fix form text colors */
+.form-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Fix Bootstrap table text */
+.table {
+  color: var(--text-primary) !important;
+}
+
+/* Fix links in cards */
+.card a:not(.btn) {
+  color: var(--accent-color);
+}
+
+/* Fix dropdown text colors */
+.dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+/* Fix modal content */
+.modal-content {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+/* Fix input placeholders */
+::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7 !important;
+}
+
+/* Fix Bootstrap list group */
+.list-group-item {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
+/* Fix list group items in quiz categories */
+.list-group-item {
+  background-color: rgba(22, 22, 40, 0.85);
+  border-color: rgba(105, 50, 255, 0.3);
+}
+
+.list-group-item:hover {
+  background-color: rgba(33, 0, 138, 0.3);
+}
+
+.list-group-item-action {
+  color: var(--text-primary);
+}
+
+.list-group-item-action:hover {
+  color: #ffffff;
+}
+
+/* Fix Bootstrap card text */
+.card-header, .card-footer, .card-title, .card-subtitle, .card-text {
+  color: var(--text-primary);
+}
+
+/* Fix white backgrounds in cards */
+.bg-white, .bg-light {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary);
+}
+
+/* Fix jumbotron and other light backgrounds */
+.jumbotron, .bg-light {
+  background-color: rgba(17, 17, 34, 0.6) !important;
+}
+
+/* Fix any remaining Bootstrap components */
+.toast, .popover, .tooltip {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
+/* Ensure table striping uses dark colors */
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Fix code blocks */
+pre, code {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--accent-color);
+}
+
+/* Fix HTML5 input elements */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--dark-bg) inset;
+  -webkit-text-fill-color: var(--text-primary);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Fix secondary buttons */
+.btn-secondary {
+  background-color: #6c757d;
+  color: white !important;
+}
+
+/* Make sure text in badges is visible */
+.badge {
+  color: white !important;
+}
+
+/* Fix Bootstrap components with default colors */
+.btn-check:focus + .btn, .btn:focus {
+  box-shadow: 0 0 0 0.25rem rgba(33, 0, 138, 0.25);
+}
+
+/* Fix white backgrounds in accordions */
+.accordion-button, .accordion-body {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: rgba(33, 0, 138, 0.3);
+  color: var(--text-primary);
+}
+
+/* Fix navbar brand and text */
+.navbar-light .navbar-brand,
+.navbar-light .navbar-nav .nav-link {
+  color: var(--text-primary);
+}
+
+/* Fix any remaining Bootstrap text */
+.fw-bold, .fw-bolder, .fw-semibold, .fw-normal, .fw-light {
+  color: inherit;
+}
+
+/* Fix category cards */
+a.card {
+  text-decoration: none;
+}
+
+a.card .card-body {
+  color: var(--text-primary);
+}
+
+a.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--accent-color);
+}
+
+a.card .card-body i {
+  transition: all 0.3s ease;
+}
+
+a.card:hover .card-body i {
+  transform: scale(1.2);
+  color: var(--accent-color);
+}
+
+a.card .h5 {
+  color: var(--text-primary);
+  margin-top: 0.5rem;
+}
+
+/* Improve text contrast in category cards */
+.card.bg-dark.text-light .card-text,
+.card.bg-dark.text-light .text-light-emphasis {
+  color: #ffffff !important;
+  opacity: 0.9;
+}
+
+/* Fix small text in cards */
+.card small.text-light-emphasis,
+.card small.text-muted {
+  color: #d8d8ff !important;
+  opacity: 0.95;
+}
+
+/* Make quiz details button more visible */
+.card-footer .btn[style*="background-color: #21008a"] {
+  background-color: #3500d3 !important;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(53, 0, 211, 0.5);
+}
+
+.card-footer .btn[style*="background-color: #21008a"]:hover {
+  background-color: #4400ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(53, 0, 211, 0.7);
+}
+
+/* Increase card background opacity for better contrast */
+.card.h-100.border-dark.bg-dark.text-light {
+  background-color: rgba(22, 22, 40, 0.85) !important;
+}
+
+.card.h-100.border-dark.bg-dark.text-light .card-header {
+  background-color: rgba(17, 17, 34, 0.8) !important;
+}
+
+/* Improve text contrast in category view cards */
+.card.h-100.border-dark.bg-dark.text-light {
+  background-color: rgba(22, 22, 40, 0.9) !important; /* Increased opacity */
+  border: 1px solid rgba(105, 50, 255, 0.4);
+}
+
+.card.h-100.border-dark.bg-dark.text-light .card-header {
+  background-color: rgba(15, 15, 30, 0.95) !important;
+  border-bottom: 1px solid rgba(105, 50, 255, 0.4);
+}
+
+.card.h-100.border-dark.bg-dark.text-light .card-title {
+  color: #ffffff !important;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.3px;
+}
+
+.card.h-100.border-dark.bg-dark.text-light .card-text,
+.card.h-100.border-dark.bg-dark.text-light .text-light-emphasis {
+  color: #f0f0ff !important;
+  opacity: 0.95;
+}
+
+/* Fix small text in cards for better readability */
+.card small.text-light-emphasis,
+.card small.text-muted {
+  color: #e0e0ff !important;
+  opacity: 1;
+}
+
+/* Improve "Se detaljer" button contrast */
+.card-footer .btn[style*="background-color: #21008a"] {
+  background-color: #4400ff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(53, 0, 211, 0.5);
+  letter-spacing: 0.3px;
+}
+
+.card-footer .btn[style*="background-color: #21008a"]:hover {
+  background-color: #5500ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(53, 0, 211, 0.7);
+}
+
+/* Fix text contrast in category page alert */
+.alert[style*="background-color: #21008a"] {
+  background-color: rgba(53, 0, 211, 0.8) !important;
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+/* Improve category buttons contrast */
+.btn-primary, .btn.btn-primary {
+  background-color: #3600b3 !important;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.btn-outline-primary {
+  border-color: #3600b3 !important;
+  color: #00e5ff !important;
+  font-weight: 500;
+}
+
+.btn-outline-primary:hover {
+  background-color: rgba(54, 0, 179, 0.7) !important;
+}
+
+/* Fix pagination contrast in category pages */
+.pagination .page-link.text-dark {
+  color: #f0f0ff !important;
+}
+
+/* Fix badge text readability */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5em 0.8em;
+  border-radius: 4px;
+}

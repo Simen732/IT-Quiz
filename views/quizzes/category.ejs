@@ -1,0 +1,100 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4 text-dark"><%= category %> Quizzer</h1>
+      
+      <div class="row mb-4">
+        <div class="col-md-8">
+          <div class="d-flex flex-wrap">
+            <a href="/quizzes/category/Programmering" class="btn me-2 mb-2 <%= category === 'Programmering' ? 'btn-primary' : 'btn-outline-primary' %>">Programmering</a>
+            <a href="/quizzes/category/Databasesystemer" class="btn me-2 mb-2 <%= category === 'Databasesystemer' ? 'btn-primary' : 'btn-outline-primary' %>">Databasesystemer</a>
+            <a href="/quizzes/category/Nettverk" class="btn me-2 mb-2 <%= category === 'Nettverk' ? 'btn-primary' : 'btn-outline-primary' %>">Nettverk</a>
+            <a href="/quizzes/category/IT-sikkerhet" class="btn me-2 mb-2 <%= category === 'IT-sikkerhet' ? 'btn-primary' : 'btn-outline-primary' %>">IT-sikkerhet</a>
+            <a href="/quizzes/category/Annet" class="btn mb-2 <%= category === 'Annet' ? 'btn-primary' : 'btn-outline-primary' %>">Annet</a>
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <a href="/quizzes/create" class="btn btn-primary">Lag ny quiz</a>
+        </div>
+      </div>
+      
+      <% if (typeof quizzes !== 'undefined' && quizzes.length > 0) { %>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          <% quizzes.forEach(function(quiz) { %>
+            <div class="col">
+              <div class="card h-100 border-dark bg-dark text-light">
+                <div class="card-header d-flex justify-content-between align-items-center bg-dark border-secondary">
+                  <span class="badge bg-<%= quiz.difficulty === 'Lett' ? 'success' : quiz.difficulty === 'Middels' ? 'warning text-dark' : 'danger' %>">
+                    <%= quiz.difficulty %>
+                  </span>
+                  <span class="badge" style="background-color: #21008a;"><%= quiz.category %></span>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title"><%= quiz.title %></h5>
+                  <p class="card-text text-truncate text-light-emphasis"><%= quiz.description %></p>
+                  <div class="d-flex align-items-center mb-3">
+                    <img src="/uploads/<%= quiz.createdBy.profileImage %>" alt="Profile" class="rounded-circle me-2" style="width: 24px; height: 24px;">
+                    <small class="text-light-emphasis"><%= quiz.createdBy.username || 'Ukjent' %></small>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <small class="text-light-emphasis">
+                      <i class="bi bi-question-circle"></i> <%= quiz.questions.length %> spørsmål
+                    </small>
+                    <small class="text-light-emphasis">
+                      <i class="bi bi-hand-thumbs-up"></i> <%= quiz.likes %>
+                      <i class="bi bi-controller ms-2"></i> <%= quiz.timesPlayed %>
+                    </small>
+                  </div>
+                </div>
+                <div class="card-footer bg-dark border-secondary">
+                  <a href="/quizzes/<%= quiz._id %>" class="btn w-100" style="background-color: #21008a; color: white;">Se detaljer</a>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+        
+        <% if (totalPages > 1) { %>
+          <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+              <% if (currentPage > 1) { %>
+                <li class="page-item">
+                  <a class="page-link text-dark" href="/quizzes/category/<%= category %>?page=<%= currentPage - 1 %>" style="background-color: #f8f9fa; border-color: #212529;">&laquo; Forrige</a>
+                </li>
+              <% } %>
+              
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                  <a class="page-link <%= i === currentPage ? 'text-white' : 'text-dark' %>" 
+                     href="/quizzes/category/<%= category %>?page=<%= i %>"
+                     style="<%= i === currentPage ? 'background-color: #21008a; border-color: #21008a;' : 'background-color: #f8f9fa; border-color: #212529;' %>">
+                    <%= i %>
+                  </a>
+                </li>
+              <% } %>
+              
+              <% if (currentPage < totalPages) { %>
+                <li class="page-item">
+                  <a class="page-link text-dark" href="/quizzes/category/<%= category %>?page=<%= currentPage + 1 %>" style="background-color: #f8f9fa; border-color: #212529;">Neste &raquo;</a>
+                </li>
+              <% } %>
+            </ul>
+          </nav>
+        <% } %>
+      <% } else { %>
+        <div class="alert" style="background-color: #21008a; color: white;">
+          <p>Ingen quizzer funnet i kategorien "<%= category %>". <a href="/quizzes/create" class="text-white text-decoration-underline">Lag en ny quiz</a> i denne kategorien!</p>
+        </div>
+      <% } %>
+      
+      <div class="mt-4">
+        <a href="/quizzes" class="btn btn-outline-secondary">Tilbake til alle quizzer</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

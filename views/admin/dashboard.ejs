@@ -1,0 +1,177 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid mt-5">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/users">
+              <i class="bi bi-people"></i> Administrer Brukere
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/quizzes">
+              <i class="bi bi-card-list"></i> Administrer Quizzer
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">
+              <i class="bi bi-arrow-left"></i> Tilbake til Dashboard
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Admin Dashboard</h1>
+      </div>
+
+      <!-- Stats cards -->
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="card text-white bg-primary">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Totalt antall brukere</h5>
+                  <h2 class="display-4"><%= stats.userCount %></h2>
+                </div>
+                <i class="bi bi-people-fill display-4"></i>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center">
+              <a href="/admin/users" class="text-white text-decoration-none w-100">
+                Vis alle brukere
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+          <div class="card text-white bg-success">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Totalt antall quizzer</h5>
+                  <h2 class="display-4"><%= stats.quizCount %></h2>
+                </div>
+                <i class="bi bi-card-checklist display-4"></i>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center">
+              <a href="/admin/quizzes" class="text-white text-decoration-none w-100">
+                Vis alle quizzer
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+          <div class="card text-white bg-info">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Totalt antall spørsmål</h5>
+                  <h2 class="display-4"><%= stats.questionCount %></h2>
+                </div>
+                <i class="bi bi-question-circle-fill display-4"></i>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center">
+              <a href="/admin/quizzes" class="text-white text-decoration-none w-100">
+                Vis alle quizzer
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Recent users -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Nyeste brukere</h5>
+            </div>
+            <div class="list-group list-group-flush">
+              <% if (recentUsers && recentUsers.length > 0) { %>
+                <% recentUsers.forEach(function(user) { %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex align-items-center">
+                        <img src="/uploads/<%= user.profileImage %>" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px;">
+                        <div>
+                          <h6 class="mb-0"><%= user.username || user.displayName || 'Ingen brukernavn' %></h6>
+                          <small class="text-muted"><%= user.email %></small>
+                        </div>
+                      </div>
+                      <span class="badge bg-<%= user.role === 'admin' ? 'danger' : 'primary' %>">
+                        <%= user.role === 'admin' ? 'Admin' : 'Bruker' %>
+                      </span>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="list-group-item">
+                  <p class="mb-0 text-muted">Ingen brukere funnet</p>
+                </div>
+              <% } %>
+            </div>
+            <div class="card-footer">
+              <a href="/admin/users" class="btn btn-sm btn-outline-primary">Se alle brukere</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular quizzes -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Populære quizzer</h5>
+            </div>
+            <div class="list-group list-group-flush">
+              <% if (popularQuizzes && popularQuizzes.length > 0) { %>
+                <% popularQuizzes.forEach(function(quiz) { %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="mb-0"><%= quiz.title %></h6>
+                        <small class="text-muted">Av: <%= quiz.createdBy.username || 'Ukjent' %> | Kategori: <%= quiz.category %></small>
+                      </div>
+                      <div class="text-end">
+                        <span class="badge bg-success"><i class="bi bi-controller"></i> <%= quiz.timesPlayed %></span>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="list-group-item">
+                  <p class="mb-0 text-muted">Ingen quizzer funnet</p>
+                </div>
+              <% } %>
+            </div>
+            <div class="card-footer">
+              <a href="/admin/quizzes" class="btn btn-sm btn-outline-primary">Se alle quizzer</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

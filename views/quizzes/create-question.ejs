@@ -1,0 +1,383 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h1 class="h3 mb-0">Legg til spørsmål</h1>
+          <span class="badge bg-light text-dark">Spørsmål <%= (quiz.questions.length + 1) %></span>
+        </div>
+        
+        <div class="card-body">
+          <div class="mb-4">
+            <div class="d-flex justify-content-between">
+              <h5>Quiz: <%= quiz.title %></h5>
+              <span class="badge bg-<%= quiz.difficulty === 'Lett' ? 'success' : quiz.difficulty === 'Middels' ? 'warning' : 'danger' %>">
+                <%= quiz.difficulty %>
+              </span>
+            </div>
+            <p class="text-muted mb-1">Kategori: <%= quiz.category %></p>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar" role="progressbar" style="width: <%= Math.min(quiz.questions.length * 10, 100) %>%"></div>
+            </div>
+            <small class="text-muted">
+              <%= quiz.questions.length %> spørsmål lagt til
+              <% if (quiz.questions.length < 5) { %>
+                (Vi anbefaler minst 5 spørsmål for en god quiz)
+              <% } %>
+            </small>
+          </div>
+          
+          <% if (typeof message !== 'undefined') { %>
+            <div class="alert alert-danger">
+              <%= message %>
+            </div>
+          <% } %>
+          
+          <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                <% errors.forEach(function(error) { %>
+                  <li><%= error.msg %></li>
+                <% }); %>
+              </ul>
+            </div>
+          <% } %>
+          
+          <form action="/quizzes/<%= quiz._id %>/questions/create" method="POST" id="questionForm">
+            <div class="mb-3">
+              <label for="questionText" class="form-label">Spørsmålstekst</label>
+              <textarea class="form-control" id="questionText" name="questionText" rows="3" required><%= typeof formData !== 'undefined' ? formData.questionText : '' %></textarea>
+              <div class="form-text">Skriv et klart og konsist spørsmål.</div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="questionType" class="form-label">Spørsmålstype</label>
+                <select class="form-select" id="questionType" name="questionType" required>
+                  <option value="" disabled <%= typeof formData === 'undefined' ? 'selected' : '' %>>Velg spørsmålstype</option>
+                  <option value="multiple-choice" <%= typeof formData !== 'undefined' && formData.questionType === 'multiple-choice' ? 'selected' : '' %>>Flervalgsspørsmål</option>
+                  <option value="true-false" <%= typeof formData !== 'undefined' && formData.questionType === 'true-false' ? 'selected' : '' %>>Sant/Usant</option>
+                  <option value="fill-in-blank" <%= typeof formData !== 'undefined' && formData.questionType === 'fill-in-blank' ? 'selected' : '' %>>Fyll inn ordet</option>
+                  <option value="matching" <%= typeof formData !== 'undefined' && formData.questionType === 'matching' ? 'selected' : '' %>>Koble sammen</option>
+                </select>
+              </div>
+              
+              <div class="col-md-3 mb-3">
+                <label for="timeLimit" class="form-label">Tid (sekunder)</label>
+                <input type="number" class="form-control" id="timeLimit" name="timeLimit" min="5" max="120" value="<%= typeof formData !== 'undefined' ? formData.timeLimit : '30' %>">
+              </div>
+              
+              <div class="col-md-3 mb-3">
+                <label for="points" class="form-label">Poeng</label>
+                <input type="number" class="form-control" id="points" name="points" min="1" max="100" value="<%= typeof formData !== 'undefined' ? formData.points : '10' %>">
+              </div>
+            </div>
+            
+            <!-- Question type specific sections -->
+            <div id="questionTypeOptions" class="mb-4 border rounded p-3 bg-light">
+              <!-- Will be filled dynamically by JavaScript -->
+              <div class="text-center text-muted py-3">
+                Velg en spørsmålstype for å fortsette
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="explanation" class="form-label">Forklaring (valgfritt)</label>
+              <textarea class="form-control" id="explanation" name="explanation" rows="2"><%= typeof formData !== 'undefined' ? formData.explanation : '' %></textarea>
+              <div class="form-text">Gi en forklaring på svaret som vises etter at spørsmålet er besvart.</div>
+            </div>
+            
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="addAnother" name="addAnother" value="true" checked>
+              <label class="form-check-label" for="addAnother">Legg til flere spørsmål etter dette</label>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+              <a href="/quizzes/<%= quiz._id %>" class="btn btn-outline-secondary">Ferdig</a>
+              <button type="submit" class="btn btn-primary">Lagre spørsmål</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const questionTypeSelect = document.getElementById('questionType');
+    const questionTypeOptions = document.getElementById('questionTypeOptions');
+    
+    // Function to update question type interface
+    function updateQuestionType() {
+      const selectedType = questionTypeSelect.value;
+      
+      if (!selectedType) {
+        questionTypeOptions.innerHTML = '<div class="text-center text-muted py-3">Velg en spørsmålstype for å fortsette</div>';
+        return;
+      }
+      
+      switch(selectedType) {
+        case 'multiple-choice':
+          questionTypeOptions.innerHTML = `
+            <h5 class="mb-3">Flervalgsmuligheter</h5>
+            <div id="optionsContainer">
+              <div class="option-row mb-2">
+                <div class="input-group">
+                  <div class="input-group-text">
+                    <input type="radio" name="correct" value="0" required>
+                  </div>
+                  <input type="text" class="form-control" name="option0" placeholder="Valgmulighet 1" required>
+                  <button type="button" class="btn btn-outline-danger remove-option" disabled>-</button>
+                </div>
+              </div>
+              <div class="option-row mb-2">
+                <div class="input-group">
+                  <div class="input-group-text">
+                    <input type="radio" name="correct" value="1" required>
+                  </div>
+                  <input type="text" class="form-control" name="option1" placeholder="Valgmulighet 2" required>
+                  <button type="button" class="btn btn-outline-danger remove-option" disabled>-</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="optionCount" name="optionCount" value="2">
+            <button type="button" id="addOption" class="btn btn-sm btn-outline-primary mt-2">Legg til valgmulighet</button>
+            <div class="form-text mt-2">Velg riktig svar ved å markere radioknappen til venstre.</div>
+          `;
+          setupMultipleChoiceHandlers();
+          break;
+          
+        case 'true-false':
+          questionTypeOptions.innerHTML = `
+            <h5 class="mb-3">Sant/Usant</h5>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tf_correct" id="tf_true" value="true" required>
+              <label class="form-check-label" for="tf_true">Sant</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tf_correct" id="tf_false" value="false" required>
+              <label class="form-check-label" for="tf_false">Usant</label>
+            </div>
+          `;
+          break;
+          
+        case 'fill-in-blank':
+          questionTypeOptions.innerHTML = `
+            <h5 class="mb-3">Fyll inn ordet</h5>
+            <div class="mb-0">
+              <label for="correctAnswer" class="form-label">Riktig svar</label>
+              <input type="text" class="form-control" id="correctAnswer" name="correctAnswer" placeholder="Skriv inn det riktige svaret" required>
+              <div class="form-text">Husk at dette svaret må være nøyaktig likt for at det skal godkjennes.</div>
+            </div>
+          `;
+          break;
+          
+        case 'matching':
+          questionTypeOptions.innerHTML = `
+            <h5 class="mb-3">Koble sammen</h5>
+            <div id="pairsContainer">
+              <div class="pair-row mb-2">
+                <div class="input-group">
+                  <input type="text" class="form-control" name="left0" placeholder="Venstre del" required>
+                  <span class="input-group-text">→</span>
+                  <input type="text" class="form-control" name="right0" placeholder="Høyre del" required>
+                  <button type="button" class="btn btn-outline-danger remove-pair" disabled>-</button>
+                </div>
+              </div>
+              <div class="pair-row mb-2">
+                <div class="input-group">
+                  <input type="text" class="form-control" name="left1" placeholder="Venstre del" required>
+                  <span class="input-group-text">→</span>
+                  <input type="text" class="form-control" name="right1" placeholder="Høyre del" required>
+                  <button type="button" class="btn btn-outline-danger remove-pair" disabled>-</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="pairCount" name="pairCount" value="2">
+            <button type="button" id="addPair" class="btn btn-sm btn-outline-primary mt-2">Legg til par</button>
+          `;
+          setupMatchingHandlers();
+          break;
+      }
+    }
+    
+    // Set up event handlers for multiple choice options
+    function setupMultipleChoiceHandlers() {
+      const addOptionBtn = document.getElementById('addOption');
+      const optionCountInput = document.getElementById('optionCount');
+      const optionsContainer = document.getElementById('optionsContainer');
+      
+      addOptionBtn.addEventListener('click', function() {
+        const optionCount = parseInt(optionCountInput.value);
+        const newRow = document.createElement('div');
+        newRow.className = 'option-row mb-2';
+        newRow.innerHTML = `
+          <div class="input-group">
+            <div class="input-group-text">
+              <input type="radio" name="correct" value="${optionCount}" required>
+            </div>
+            <input type="text" class="form-control" name="option${optionCount}" placeholder="Valgmulighet ${optionCount + 1}" required>
+            <button type="button" class="btn btn-outline-danger remove-option">-</button>
+          </div>
+        `;
+        optionsContainer.appendChild(newRow);
+        optionCountInput.value = optionCount + 1;
+        
+        // Enable all remove buttons if there are more than 2 options
+        if (optionCount + 1 > 2) {
+          enableRemoveButtons();
+        }
+      });
+      
+      // Remove option button handler using event delegation
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-option')) {
+          const optionRow = e.target.closest('.option-row');
+          const optionCount = parseInt(optionCountInput.value);
+          
+          // Only remove if there are more than 2 options
+          if (optionCount > 2) {
+            optionRow.remove();
+            optionCountInput.value = optionCount - 1;
+            
+            // Renumber the options
+            const options = optionsContainer.querySelectorAll('.option-row');
+            options.forEach((option, index) => {
+              const radio = option.querySelector('input[type="radio"]');
+              const input = option.querySelector('input[type="text"]');
+              
+              radio.value = index;
+              input.name = `option${index}`;
+              input.placeholder = `Valgmulighet ${index + 1}`;
+            });
+            
+            // Disable remove buttons if only 2 options remain
+            if (optionCount - 1 <= 2) {
+              disableRemoveButtons();
+            }
+          }
+        }
+      });
+      
+      function enableRemoveButtons() {
+        const removeButtons = optionsContainer.querySelectorAll('.remove-option');
+        removeButtons.forEach(button => {
+          button.disabled = false;
+        });
+      }
+      
+      function disableRemoveButtons() {
+        const removeButtons = optionsContainer.querySelectorAll('.remove-option');
+        removeButtons.forEach(button => {
+          button.disabled = true;
+        });
+      }
+    }
+    
+    // Set up event handlers for matching pairs
+    function setupMatchingHandlers() {
+      const addPairBtn = document.getElementById('addPair');
+      const pairCountInput = document.getElementById('pairCount');
+      const pairsContainer = document.getElementById('pairsContainer');
+      
+      addPairBtn.addEventListener('click', function() {
+        const pairCount = parseInt(pairCountInput.value);
+        const newRow = document.createElement('div');
+        newRow.className = 'pair-row mb-2';
+        newRow.innerHTML = `
+          <div class="input-group">
+            <input type="text" class="form-control" name="left${pairCount}" placeholder="Venstre del" required>
+            <span class="input-group-text">→</span>
+            <input type="text" class="form-control" name="right${pairCount}" placeholder="Høyre del" required>
+            <button type="button" class="btn btn-outline-danger remove-pair">-</button>
+          </div>
+        `;
+        pairsContainer.appendChild(newRow);
+        pairCountInput.value = pairCount + 1;
+        
+        // Enable all remove buttons if there are more than 2 pairs
+        if (pairCount + 1 > 2) {
+          enableRemovePairButtons();
+        }
+      });
+      
+      // Remove pair button handler
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-pair')) {
+          const pairRow = e.target.closest('.pair-row');
+          const pairCount = parseInt(pairCountInput.value);
+          
+          // Only remove if there are more than 2 pairs
+          if (pairCount > 2) {
+            pairRow.remove();
+            pairCountInput.value = pairCount - 1;
+            
+            // Renumber the pairs
+            const pairs = pairsContainer.querySelectorAll('.pair-row');
+            pairs.forEach((pair, index) => {
+              const inputs = pair.querySelectorAll('input[type="text"]');
+              inputs[0].name = `left${index}`;
+              inputs[1].name = `right${index}`;
+            });
+            
+            // Disable remove buttons if only 2 pairs remain
+            if (pairCount - 1 <= 2) {
+              disableRemovePairButtons();
+            }
+          }
+        }
+      });
+      
+      function enableRemovePairButtons() {
+        const removeButtons = pairsContainer.querySelectorAll('.remove-pair');
+        removeButtons.forEach(button => {
+          button.disabled = false;
+        });
+      }
+      
+      function disableRemovePairButtons() {
+        const removeButtons = pairsContainer.querySelectorAll('.remove-pair');
+        removeButtons.forEach(button => {
+          button.disabled = true;
+        });
+      }
+    }
+    
+    // Set up event listeners
+    questionTypeSelect.addEventListener('change', updateQuestionType);
+    
+    // Form submission handler for true/false questions
+    document.getElementById('questionForm').addEventListener('submit', function(e) {
+      const questionType = questionTypeSelect.value;
+      
+      if (questionType === 'true-false') {
+        // Process true-false options
+        const tfTrue = document.getElementById('tf_true').checked;
+        const tfFalse = document.getElementById('tf_false').checked;
+        
+        // Set up hidden option fields for true/false
+        const hiddenFields = document.createElement('div');
+        hiddenFields.style.display = 'none';
+        hiddenFields.innerHTML = `
+          <input type="hidden" name="optionCount" value="2">
+          <input type="hidden" name="option0" value="Sant">
+          <input type="hidden" name="option1" value="Usant">
+          <input type="hidden" name="correct" value="${tfTrue ? '0' : '1'}">
+        `;
+        
+        this.appendChild(hiddenFields);
+      }
+    });
+    
+    // Initialize if a type is already selected (e.g., on form errors)
+    if (questionTypeSelect.value !== '') {
+      updateQuestionType();
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

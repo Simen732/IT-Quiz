@@ -1,0 +1,622 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5 mb-5">
+  <div id="quiz-container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0"><%= quiz.title %></h1>
+            <div class="quiz-stats">
+              <span class="badge bg-light text-dark me-2">
+                <i class="bi bi-question-circle"></i> <span id="question-counter">1</span>/<span id="total-questions"><%= quiz.questions.length %></span>
+              </span>
+              <span class="badge bg-light text-dark">
+                <i class="bi bi-trophy"></i> <span id="score">0</span>
+              </span>
+            </div>
+          </div>
+          
+          <div id="quiz-loading" class="card-body text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Laster...</span>
+            </div>
+            <p class="mt-2">Forbereder quiz...</p>
+          </div>
+          
+          <div id="quiz-play" class="card-body" style="display: none;">
+            <div id="timer-container" class="mb-3">
+              <div class="progress">
+                <div id="timer-bar" class="progress-bar" role="progressbar" style="width: 100%"></div>
+              </div>
+              <div class="text-end mt-1">
+                <small class="text-muted">Tid igjen: <span id="timer-count">30</span> sekunder</small>
+              </div>
+            </div>
+            
+            <div id="question-container">
+              <h2 id="question-text" class="mb-4"></h2>
+              
+              <!-- Multiple Choice and True/False Template -->
+              <div id="multiple-choice-container" class="answer-container">
+                <div id="options-list" class="list-group mb-3">
+                  <!-- Options will be inserted here dynamically -->
+                </div>
+              </div>
+              
+              <!-- Fill in the Blank Template -->
+              <div id="fill-blank-container" class="answer-container">
+                <div class="mb-3">
+                  <input type="text" id="blank-answer" class="form-control" placeholder="Skriv inn ditt svar her">
+                </div>
+                <div class="d-grid">
+                  <button id="blank-submit" class="btn btn-primary">Svar</button>
+                </div>
+              </div>
+              
+              <!-- Matching Template -->
+              <div id="matching-container" class="answer-container">
+                <div id="matching-pairs" class="mb-3">
+                  <!-- Matching pairs will be inserted here dynamically -->
+                </div>
+                <div class="d-grid">
+                  <button id="matching-submit" class="btn btn-primary">Svar</button>
+                </div>
+              </div>
+            </div>
+            
+            <div id="feedback-container" class="mt-4" style="display: none;">
+              <div id="correct-feedback" class="alert alert-success" style="display: none;">
+                <h4><i class="bi bi-check-circle"></i> Riktig!</h4>
+                <p id="correct-message"></p>
+              </div>
+              <div id="incorrect-feedback" class="alert alert-danger" style="display: none;">
+                <h4><i class="bi bi-x-circle"></i> Feil!</h4>
+                <p id="incorrect-message"></p>
+              </div>
+              <div id="explanation-text" class="alert alert-info mt-2" style="display: none;">
+                <h5>Forklaring:</h5>
+                <p id="explanation"></p>
+              </div>
+            </div>
+          </div>
+          
+          <div id="quiz-results" class="card-body text-center" style="display: none;">
+            <h2 class="mb-4">Quiz fullført!</h2>
+            <div class="display-1 mb-4">
+              <i id="result-icon" class="bi"></i>
+            </div>
+            <h3>Din poengsum: <span id="final-score">0</span> av <span id="max-score">0</span></h3>
+            <div class="progress mb-4">
+              <div id="result-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <p id="result-message"></p>
+            <div class="mt-4">
+              <a href="/quizzes/<%= quiz._id %>" class="btn btn-outline-primary me-2">Se Quiz Detaljer</a>
+              <button id="replay-btn" class="btn btn-primary">Spill Igjen</button>
+            </div>
+          </div>
+          
+          <div class="card-footer">
+            <button id="next-btn" class="btn btn-primary float-end" style="display: none;">Neste spørsmål</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Quiz Data
+    const quizData = <%- quizData %>;
+    let currentQuestion = 0;
+    let score = 0;
+    let maxScore = 0;
+    let timer;
+    let timeLeft;
+    
+    // UI Elements
+    const quizLoading = document.getElementById('quiz-loading');
+    const quizPlay = document.getElementById('quiz-play');
+    const quizResults = document.getElementById('quiz-results');
+    const questionCounter = document.getElementById('question-counter');
+    const totalQuestions = document.getElementById('total-questions');
+    const scoreDisplay = document.getElementById('score');
+    const questionText = document.getElementById('question-text');
+    const optionsList = document.getElementById('options-list');
+    const timerBar = document.getElementById('timer-bar');
+    const timerCount = document.getElementById('timer-count');
+    const nextBtn = document.getElementById('next-btn');
+    const feedbackContainer = document.getElementById('feedback-container');
+    const correctFeedback = document.getElementById('correct-feedback');
+    const incorrectFeedback = document.getElementById('incorrect-feedback');
+    const correctMessage = document.getElementById('correct-message');
+    const incorrectMessage = document.getElementById('incorrect-message');
+    const explanationContainer = document.getElementById('explanation-text');
+    const explanationText = document.getElementById('explanation');
+    
+    // Answer containers
+    const multipleChoiceContainer = document.getElementById('multiple-choice-container');
+    const fillBlankContainer = document.getElementById('fill-blank-container');
+    const matchingContainer = document.getElementById('matching-container');
+    
+    // Fill in blank elements
+    const blankAnswer = document.getElementById('blank-answer');
+    const blankSubmit = document.getElementById('blank-submit');
+    
+    // Matching elements
+    const matchingPairs = document.getElementById('matching-pairs');
+    const matchingSubmit = document.getElementById('matching-submit');
+    
+    // Results elements
+    const finalScore = document.getElementById('final-score');
+    const maxScoreDisplay = document.getElementById('max-score');
+    const resultProgress = document.getElementById('result-progress');
+    const resultIcon = document.getElementById('result-icon');
+    const resultMessage = document.getElementById('result-message');
+    const replayBtn = document.getElementById('replay-btn');
+    
+    // Initialize quiz
+    function initQuiz() {
+      // Calculate max possible score
+      quizData.questions.forEach(question => {
+        maxScore += question.points;
+      });
+      
+      // Display first question after a short delay
+      setTimeout(() => {
+        quizLoading.style.display = 'none';
+        quizPlay.style.display = 'block';
+        showQuestion(currentQuestion);
+      }, 1000);
+    }
+    
+    // Show current question
+    function showQuestion(index) {
+      // Reset UI state
+      hideAllAnswerContainers();
+      feedbackContainer.style.display = 'none';
+      nextBtn.style.display = 'none';
+      
+      // Get current question
+      const question = quizData.questions[index];
+      
+      // Update question counter
+      questionCounter.textContent = index + 1;
+      
+      // Display question text
+      questionText.textContent = question.questionText;
+      
+      // Set up timer
+      timeLeft = question.timeLimit;
+      timerCount.textContent = timeLeft;
+      timerBar.style.width = '100%';
+      timerBar.classList.remove('bg-danger');
+      startTimer(question.timeLimit);
+      
+      // Show appropriate answer UI based on question type
+      switch (question.questionType) {
+        case 'multiple-choice':
+        case 'true-false':
+          showMultipleChoiceQuestion(question);
+          break;
+        case 'fill-in-blank':
+          showFillInBlankQuestion(question);
+          break;
+        case 'matching':
+          showMatchingQuestion(question);
+          break;
+      }
+    }
+    
+    // Start timer for current question
+    function startTimer(duration) {
+      // Clear any existing timer
+      if (timer) clearInterval(timer);
+      
+      const fullTime = duration;
+      timeLeft = duration;
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        timerCount.textContent = timeLeft;
+        
+        // Update progress bar
+        const percentage = (timeLeft / fullTime) * 100;
+        timerBar.style.width = percentage + '%';
+        
+        // Change color when time is running out
+        if (percentage < 30) {
+          timerBar.classList.add('bg-danger');
+        }
+        
+        // Time's up
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          handleTimesUp();
+        }
+      }, 1000);
+    }
+    
+    // Handle when time runs out
+    function handleTimesUp() {
+      // Show feedback that time is up
+      feedbackContainer.style.display = 'block';
+      incorrectFeedback.style.display = 'block';
+      incorrectMessage.textContent = 'Tiden er ute! Du fikk ikke svart på spørsmålet.';
+      
+      // Show explanation if available
+      showExplanation(quizData.questions[currentQuestion]);
+      
+      // Show next button
+      nextBtn.style.display = 'block';
+      
+      // Disable inputs
+      disableAnswerInputs();
+    }
+    
+    // Hide all answer containers
+    function hideAllAnswerContainers() {
+      multipleChoiceContainer.style.display = 'none';
+      fillBlankContainer.style.display = 'none';
+      matchingContainer.style.display = 'none';
+      correctFeedback.style.display = 'none';
+      incorrectFeedback.style.display = 'none';
+      explanationContainer.style.display = 'none';
+    }
+    
+    // Show multiple choice or true/false question
+    function showMultipleChoiceQuestion(question) {
+      multipleChoiceContainer.style.display = 'block';
+      optionsList.innerHTML = '';
+      
+      // Create option buttons
+      question.options.forEach((option, index) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.className = 'list-group-item list-group-item-action';
+        optionBtn.textContent = option.text;
+        optionBtn.setAttribute('data-index', index);
+        optionBtn.addEventListener('click', () => checkMultipleChoiceAnswer(option.isCorrect, question, optionBtn));
+        optionsList.appendChild(optionBtn);
+      });
+    }
+    
+    // Show fill in the blank question
+    function showFillInBlankQuestion(question) {
+      fillBlankContainer.style.display = 'block';
+      blankAnswer.value = '';
+      blankAnswer.focus();
+      
+      blankSubmit.onclick = function() {
+        const userAnswer = blankAnswer.value.trim();
+        checkFillInBlankAnswer(userAnswer, question);
+      };
+      
+      // Allow Enter key to submit
+      blankAnswer.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          blankSubmit.click();
+        }
+      });
+    }
+    
+    // Show matching question
+    function showMatchingQuestion(question) {
+      matchingContainer.style.display = 'block';
+      matchingPairs.innerHTML = '';
+      
+      // Create a copy of the pairs for randomization
+      const rightItems = question.matchingPairs.map(pair => ({ text: pair.right, originalIndex: question.matchingPairs.indexOf(pair) }));
+      
+      // Shuffle the right items
+      shuffleArray(rightItems);
+      
+      // Create matching pairs UI
+      question.matchingPairs.forEach((pair, index) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'matching-row mb-2';
+        
+        const leftItem = document.createElement('div');
+        leftItem.className = 'matching-item-left';
+        leftItem.innerHTML = `
+          <div class="input-group">
+            <span class="input-group-text">${index + 1}</span>
+            <span class="form-control">${pair.left}</span>
+          </div>
+        `;
+        
+        const rightSelect = document.createElement('select');
+        rightSelect.className = 'form-select matching-select';
+        rightSelect.setAttribute('data-left-index', index);
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = "Velg matchende svar";
+        defaultOption.selected = true;
+        rightSelect.appendChild(defaultOption);
+        
+        // Add options from shuffled right items
+        rightItems.forEach((rightItem, rightIndex) => {
+          const option = document.createElement('option');
+          option.value = rightItem.originalIndex;
+          option.textContent = rightItem.text;
+          rightSelect.appendChild(option);
+        });
+        
+        rowDiv.appendChild(leftItem);
+        rowDiv.appendChild(rightSelect);
+        matchingPairs.appendChild(rowDiv);
+      });
+      
+      // Set up submit button
+      matchingSubmit.onclick = function() {
+        const selections = document.querySelectorAll('.matching-select');
+        const answers = Array.from(selections).map(select => ({
+          leftIndex: parseInt(select.getAttribute('data-left-index')),
+          rightIndex: select.value ? parseInt(select.value) : -1
+        }));
+        
+        checkMatchingAnswer(answers, question);
+      };
+    }
+    
+    // Check multiple choice or true/false answer
+    function checkMultipleChoiceAnswer(isCorrect, question, selectedBtn) {
+      // Stop timer
+      clearInterval(timer);
+      
+      // Disable all options
+      const options = optionsList.querySelectorAll('button');
+      options.forEach(btn => {
+        btn.disabled = true;
+        
+        // Get index of this option
+        const btnIndex = parseInt(btn.getAttribute('data-index'));
+        
+        // Highlight correct and incorrect answers
+        if (question.options[btnIndex].isCorrect) {
+          btn.classList.add('list-group-item-success');
+        } else if (btn === selectedBtn && !isCorrect) {
+          btn.classList.add('list-group-item-danger');
+        }
+      });
+      
+      // Show feedback
+      feedbackContainer.style.display = 'block';
+      if (isCorrect) {
+        correctFeedback.style.display = 'block';
+        correctMessage.textContent = 'Du svarte riktig!';
+        
+        // Add points
+        score += question.points;
+        scoreDisplay.textContent = score;
+      } else {
+        incorrectFeedback.style.display = 'block';
+        
+        // Find correct answer text
+        const correctOption = question.options.find(opt => opt.isCorrect);
+        incorrectMessage.textContent = `Riktig svar er: ${correctOption.text}`;
+      }
+      
+      // Show explanation if available
+      showExplanation(question);
+      
+      // Show next button
+      nextBtn.style.display = 'block';
+    }
+    
+    // Check fill in the blank answer
+    function checkFillInBlankAnswer(userAnswer, question) {
+      // Stop timer
+      clearInterval(timer);
+      
+      // Disable input
+      blankAnswer.disabled = true;
+      blankSubmit.disabled = true;
+      
+      // Check answer (case insensitive)
+      const isCorrect = userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
+      
+      // Show feedback
+      feedbackContainer.style.display = 'block';
+      if (isCorrect) {
+        correctFeedback.style.display = 'block';
+        correctMessage.textContent = 'Du svarte riktig!';
+        
+        // Add points
+        score += question.points;
+        scoreDisplay.textContent = score;
+      } else {
+        incorrectFeedback.style.display = 'block';
+        incorrectMessage.textContent = `Riktig svar er: ${question.correctAnswer}`;
+      }
+      
+      // Show explanation if available
+      showExplanation(question);
+      
+      // Show next button
+      nextBtn.style.display = 'block';
+    }
+    
+    // Check matching answer
+    function checkMatchingAnswer(userAnswers, question) {
+      // Stop timer
+      clearInterval(timer);
+      
+      // Disable all selects
+      const selects = document.querySelectorAll('.matching-select');
+      selects.forEach(select => {
+        select.disabled = true;
+      });
+      
+      // Disable submit button
+      matchingSubmit.disabled = true;
+      
+      // Count correct matches
+      let correctMatches = 0;
+      for (let answer of userAnswers) {
+        if (answer.leftIndex === answer.rightIndex) {
+          correctMatches++;
+        }
+      }
+      
+      // Calculate partial score
+      const totalPairs = question.matchingPairs.length;
+      const percentageCorrect = correctMatches / totalPairs;
+      const earnedPoints = Math.round(question.points * percentageCorrect);
+      
+      // Highlight correct and incorrect matches
+      selects.forEach(select => {
+        const leftIndex = parseInt(select.getAttribute('data-left-index'));
+        const selectedValue = select.value ? parseInt(select.value) : -1;
+        
+        // Add visual feedback
+        if (leftIndex === selectedValue) {
+          select.parentNode.classList.add('border-success');
+        } else {
+          select.parentNode.classList.add('border-danger');
+        }
+      });
+      
+      // Show feedback
+      feedbackContainer.style.display = 'block';
+      if (correctMatches === totalPairs) {
+        correctFeedback.style.display = 'block';
+        correctMessage.textContent = 'Du matchet alle korrekt!';
+        
+        // Add full points
+        score += question.points;
+      } else if (correctMatches > 0) {
+        correctFeedback.style.display = 'block';
+        correctMessage.textContent = `Du fikk ${correctMatches} av ${totalPairs} riktige! (${earnedPoints} poeng)`;
+        
+        // Add partial points
+        score += earnedPoints;
+      } else {
+        incorrectFeedback.style.display = 'block';
+        incorrectMessage.textContent = 'Ingen riktige svar.';
+      }
+      
+      // Update score
+      scoreDisplay.textContent = score;
+      
+      // Show explanation if available
+      showExplanation(question);
+      
+      // Show next button
+      nextBtn.style.display = 'block';
+    }
+    
+    // Show explanation if available
+    function showExplanation(question) {
+      if (question.explanation && question.explanation.trim() !== '') {
+        explanationContainer.style.display = 'block';
+        explanationText.textContent = question.explanation;
+      } else {
+        explanationContainer.style.display = 'none';
+      }
+    }
+    
+    // Disable all answer inputs
+    function disableAnswerInputs() {
+      // Disable multiple choice options
+      const options = optionsList.querySelectorAll('button');
+      options.forEach(btn => {
+        btn.disabled = true;
+      });
+      
+      // Disable fill in blank
+      blankAnswer.disabled = true;
+      blankSubmit.disabled = true;
+      
+      // Disable matching selects
+      const selects = document.querySelectorAll('.matching-select');
+      selects.forEach(select => {
+        select.disabled = true;
+      });
+      matchingSubmit.disabled = true;
+    }
+    
+    // Move to next question or end quiz
+    function nextQuestion() {
+      currentQuestion++;
+      
+      if (currentQuestion < quizData.questions.length) {
+        showQuestion(currentQuestion);
+      } else {
+        endQuiz();
+      }
+    }
+    
+    // End quiz and show results
+    function endQuiz() {
+      // Stop timer
+      clearInterval(timer);
+      
+      // Hide question UI
+      quizPlay.style.display = 'none';
+      
+      // Show results UI
+      quizResults.style.display = 'block';
+      
+      // Calculate percentage
+      const percentage = Math.round((score / maxScore) * 100);
+      
+      // Update UI
+      finalScore.textContent = score;
+      maxScoreDisplay.textContent = maxScore;
+      resultProgress.style.width = percentage + '%';
+      
+      // Set result message based on score
+      if (percentage >= 90) {
+        resultIcon.className = 'bi bi-trophy text-warning';
+        resultMessage.textContent = 'Fantastisk! Du er en quiz-mester!';
+      } else if (percentage >= 75) {
+        resultIcon.className = 'bi bi-award text-primary';
+        resultMessage.textContent = 'Meget bra! Du har virkelig peiling på IT!';
+      } else if (percentage >= 50) {
+        resultIcon.className = 'bi bi-hand-thumbs-up text-success';
+        resultMessage.textContent = 'Bra jobbet! Du har god kunnskap om IT.';
+      } else if (percentage >= 25) {
+        resultIcon.className = 'bi bi-emoji-smile text-info';
+        resultMessage.textContent = 'Ikke verst, men du har rom for forbedring!';
+      } else {
+        resultIcon.className = 'bi bi-book text-secondary';
+        resultMessage.textContent = 'Det kan lønne seg å lese litt mer om IT!';
+      }
+      
+      // Save score to server (could be implemented later)
+      // saveScore(score);
+    }
+    
+    // Reset quiz to play again
+    function resetQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      scoreDisplay.textContent = '0';
+      quizResults.style.display = 'none';
+      quizLoading.style.display = 'block';
+      initQuiz();
+    }
+    
+    // Utility function to shuffle array
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+    
+    // Set up event listeners
+    nextBtn.addEventListener('click', nextQuestion);
+    replayBtn.addEventListener('click', resetQuiz);
+    
+    // Start the quiz
+    initQuiz();
+  });
+</script>
+
+<%- include('../partials/footer') %>

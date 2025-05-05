@@ -2,28 +2,208 @@
 <%- include('partials/navbar') %>
 
 <div class="container mt-5">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h2 class="mb-0">Welcome to Your Web Application</h2>
+  <!-- Hero section -->
+  <div class="row align-items-center mb-5">
+    <div class="col-md-6">
+      <h1 class="display-4 fw-bold">Test din IT-kunnskap</h1>
+      <p class="lead mb-4">Delta i interaktive quizzer innenfor programmering, databaser, nettverk og IT-sikkerhet. Lær nye konsepter, test dine ferdigheter og konkurrer med andre.</p>
+      
+      <% if (locals.isAuthenticated && locals.currentUser) { %>
+        <div class="d-grid gap-2 d-md-flex">
+          <a href="/dashboard" class="btn btn-primary btn-lg px-4">Gå til Dashboard</a>
+          <a href="/quizzes" class="btn btn-outline-primary btn-lg px-4">Utforsk Quizzer</a>
         </div>
-        <div class="card-body">
-          <% if (locals.user) { %>
-            <h4>Welcome back, <%= user.username %>!</h4>
-            <p>You are currently logged in.</p>
-            <a href="/dashboard" class="btn btn-success">Go to Dashboard</a>
-          <% } else { %>
-            <h4>Welcome to the template!</h4>
-            <p>This is a scalable web application template built with Node.js, EJS, and MongoDB.</p>
-            <p>To get started, please register or login:</p>
-            <div class="d-flex gap-2">
-              <a href="/auth/register" class="btn btn-primary">Register</a>
-              <a href="/auth/login" class="btn btn-secondary">Login</a>
-            </div>
-          <% } %>
+      <% } else { %>
+        <div class="d-grid gap-2 d-md-flex">
+          <a href="/auth/register" class="btn btn-primary btn-lg px-4">Registrer deg</a>
+          <a href="/auth/login" class="btn btn-outline-primary btn-lg px-4">Logg inn</a>
+        </div>
+      <% } %>
+    </div>
+    <div class="col-md-6 d-none d-md-block text-center">
+      <img src="/img/IT-quiz.png" alt="IT Quiz Illustration" class="img-fluid" style="max-height: 350px;">
+    </div>
+  </div>
+  
+  <!-- Features section -->
+  <div class="row mb-5">
+    <div class="col-12 text-center mb-4">
+      <h2>Hva tilbyr IT-Quiz?</h2>
+      <p class="lead text-muted">En komplett plattform for IT-læring gjennom quizzer</p>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="bi bi-laptop display-4 text-primary"></i>
+          </div>
+          <h3 class="card-title h5">Varierte Quizformater</h3>
+          <p class="card-text">Flervalgsspørsmål, sant/usant, fyll-inn-blankt og matching for å teste ulike ferdigheter.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="bi bi-trophy display-4 text-warning"></i>
+          </div>
+          <h3 class="card-title h5">Konkurrer med andre</h3>
+          <p class="card-text">Se hvordan du gjør det sammenlignet med andre, samle poeng og topp rangeringer.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="bi bi-pencil-square display-4 text-success"></i>
+          </div>
+          <h3 class="card-title h5">Lag dine egne quizzer</h3>
+          <p class="card-text">Bidra til plattformen ved å lage og dele dine egne IT-quizzer med fellesskapet.</p>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Popular quizzes section -->
+  <div class="card mb-5">
+    <div class="card-header bg-light">
+      <h2 class="h4 mb-0">Populære Quizzer</h2>
+    </div>
+    <div class="card-body">
+      <div class="row" id="popular-quizzes-container">
+        <div class="col-12 text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Laster...</span>
+          </div>
+          <p class="mt-2">Laster populære quizzer...</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer text-center">
+      <a href="/quizzes" class="btn btn-outline-primary">Utforsk alle quizzer</a>
+    </div>
+  </div>
+
+  <!-- Categories section -->
+  <div class="row mb-5">
+    <div class="col-12 text-center mb-4">
+      <h2>Utforsk etter kategori</h2>
+    </div>
+    
+    <div class="col-6 col-md-4 mb-3">
+      <a href="/quizzes/category/Programmering" class="card text-decoration-none h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-code-square display-6 mb-2 text-primary"></i>
+          <h3 class="h5">Programmering</h3>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-6 col-md-4 mb-3">
+      <a href="/quizzes/category/Databasesystemer" class="card text-decoration-none h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-database display-6 mb-2 text-primary"></i>
+          <h3 class="h5">Databasesystemer</h3>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-6 col-md-4 mb-3">
+      <a href="/quizzes/category/Nettverk" class="card text-decoration-none h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-hdd-network display-6 mb-2 text-primary"></i>
+          <h3 class="h5">Nettverk</h3>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-6 col-md-4 mb-3">
+      <a href="/quizzes/category/IT-sikkerhet" class="card text-decoration-none h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-shield-lock display-6 mb-2 text-primary"></i>
+          <h3 class="h5">IT-sikkerhet</h3>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-6 col-md-4 mb-3">
+      <a href="/quizzes/category/Annet" class="card text-decoration-none h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-grid display-6 mb-2 text-primary"></i>
+          <h3 class="h5">Annet</h3>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-6 col-md-4 mb-3">
+      <a href="/quizzes" class="card text-decoration-none h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-search display-6 mb-2 text-primary"></i>
+          <h3 class="h5">Alle Kategorier</h3>
+        </div>
+      </a>
+    </div>
+  </div>
 </div>
+
+<script>
+  // Fetch and display popular quizzes
+  document.addEventListener('DOMContentLoaded', async function() {
+    try {
+      const response = await fetch('/api/quizzes/popular');
+      const data = await response.json();
+      
+      const container = document.getElementById('popular-quizzes-container');
+      
+      if (data.quizzes && data.quizzes.length > 0) {
+        let html = '';
+        
+        data.quizzes.forEach(quiz => {
+          html += `
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span class="badge bg-${quiz.difficulty === 'Lett' ? 'success' : quiz.difficulty === 'Middels' ? 'warning' : 'danger'}">
+                    ${quiz.difficulty}
+                  </span>
+                  <span class="badge bg-info">${quiz.category}</span>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">${quiz.title}</h5>
+                  <p class="card-text small text-truncate">${quiz.description}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small>
+                      <i class="bi bi-question-circle"></i> ${quiz.questions.length} spørsmål
+                    </small>
+                    <small>
+                      <i class="bi bi-hand-thumbs-up"></i> ${quiz.likes}
+                      <i class="bi bi-controller ms-1"></i> ${quiz.timesPlayed}
+                    </small>
+                  </div>
+                </div>
+                <div class="card-footer">
+                  <a href="/quizzes/${quiz._id}" class="btn btn-outline-primary btn-sm w-100">Se detaljer</a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = '<div class="col-12 text-center"><p>Ingen populære quizzer funnet ennå. Bli den første til å lage en!</p></div>';
+      }
+    } catch (err) {
+      console.error('Error fetching popular quizzes:', err);
+      document.getElementById('popular-quizzes-container').innerHTML = 
+        '<div class="col-12 text-center"><p>Kunne ikke laste populære quizzer.</p></div>';
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,89 +1,92 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes - only authenticated users can access
-exports.protect = async (req, res, next) => {
+// Check if user is logged in (for all routes)
+exports.isLoggedIn = async (req, res, next) => {
+  // First check if user is authenticated via Passport (Google OAuth)
+  if (req.isAuthenticated()) {
+    res.locals.isAuthenticated = true;
+    res.locals.currentUser = req.user;
+    return next();
+  }
+  
+  // If not authenticated via Passport, check JWT
   try {
-    // Check if user is authenticated by Passport
-    if (req.isAuthenticated()) {
-      res.locals.user = req.user;
-      return next();
-    }
-
-    // Get token from cookies
     const token = req.cookies.jwt;
+    
+    if (token && token !== 'loggedout') {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (currentUser) {
+        // User is logged in via JWT
+        res.locals.isAuthenticated = true;
+        res.locals.currentUser = currentUser;
+        req.user = currentUser; // Make user available on req object
+        return next();
+      }
+    }
+  } catch (err) {
+    console.error('JWT verification error:', err);
+  }
 
-    if (!token) {
+  // Not authenticated via either method
+  res.locals.isAuthenticated = false;
+  res.locals.currentUser = null;
+  next();
+};
+
+// Protect routes from unauthenticated access
+exports.protect = async (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  
+  try {
+    const token = req.cookies.jwt;
+    
+    if (!token || token === 'loggedout') {
       return res.redirect('/auth/login');
     }
-
+    
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    
     // Check if user still exists
     const currentUser = await User.findById(decoded.id);
     if (!currentUser) {
       return res.redirect('/auth/login');
     }
-
+    
     // Grant access to protected route
     req.user = currentUser;
-    res.locals.user = currentUser;
     next();
   } catch (err) {
-    res.redirect('/auth/login');
+    return res.redirect('/auth/login');
   }
 };
 
-// Check if user is logged in for views
-exports.isLoggedIn = async (req, res, next) => {
-  try {
-    // Check if user is authenticated by Passport
-    if (req.isAuthenticated()) {
-      res.locals.user = req.user;
-      return next();
-    }
-
-    if (req.cookies.jwt) {
-      // Verify token
-      const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
-
-      // Check if user still exists
-      const currentUser = await User.findById(decoded.id);
-      if (!currentUser) {
-        return next();
-      }
-
-      // User is logged in
-      res.locals.user = currentUser;
-      return next();
-    }
-  } catch (err) {
-    // No logged-in user
+// Check for admin role
+exports.isAdmin = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/auth/login');
   }
+  
+  if (req.user.role !== 'admin') {
+    return res.status(403).render('error', { 
+      message: 'Du har ikke tilgang til denne siden. Kun administratorer har tilgang.' 
+    });
+  }
+  
   next();
 };
 
 // Redirect if already authenticated
-exports.redirectIfAuthenticated = async (req, res, next) => {
-  // Check if user is authenticated by Passport
+exports.redirectIfAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
-    return res.redirect('/');
-  }
-
-  if (req.cookies.jwt) {
-    try {
-      // Verify token
-      const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
-      
-      // Check if user exists
-      const currentUser = await User.findById(decoded.id);
-      if (currentUser) {
-        return res.redirect('/');
-      }
-    } catch (err) {
-      // Invalid token, continue
-    }
+    return res.redirect('/dashboard');
   }
   next();
 };

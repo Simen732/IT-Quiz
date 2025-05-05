@@ -1,0 +1,223 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h1 class="h3 mb-0"><%= quiz.title %></h1>
+          <div>
+            <span class="badge bg-<%= quiz.difficulty === 'Lett' ? 'success' : quiz.difficulty === 'Middels' ? 'warning' : 'danger' %>">
+              <%= quiz.difficulty %>
+            </span>
+            <span class="badge bg-info"><%= quiz.category %></span>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="card-text"><%= quiz.description %></p>
+          
+          <div class="d-flex align-items-center mb-3">
+            <img src="/uploads/<%= quiz.createdBy.profileImage %>" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px;">
+            <span>Laget av <strong><%= quiz.createdBy.username || 'Ukjent' %></strong></span>
+          </div>
+          
+          <div class="row text-center mb-3">
+            <div class="col-4">
+              <div class="p-3 border rounded">
+                <h4 class="mb-0"><%= quiz.questions.length %></h4>
+                <small class="text-muted">Spørsmål</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 border rounded">
+                <h4 class="mb-0" id="likes-count"><%= quiz.likes %></h4>
+                <small class="text-muted">Likes</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 border rounded">
+                <h4 class="mb-0"><%= quiz.timesPlayed %></h4>
+                <small class="text-muted">Spilt</small>
+              </div>
+            </div>
+          </div>
+          
+          <% if (quiz.questions.length > 0) { %>
+            <div class="d-grid gap-2">
+              <a href="/quizzes/<%= quiz._id %>/play" class="btn btn-primary btn-lg">Start Quiz</a>
+            </div>
+          <% } else { %>
+            <div class="alert alert-warning">
+              <p class="mb-0">Denne quizen har ingen spørsmål ennå.</p>
+            </div>
+          <% } %>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Opprettet: <%= new Date(quiz.createdAt).toLocaleDateString('no-NO') %></small>
+          </div>
+          <div>
+            <% if (isAuthenticated) { %>
+              <button id="likeButton" class="btn btn-sm btn-outline-danger" data-quiz-id="<%= quiz._id %>">
+                <i class="bi bi-heart"></i> Lik
+              </button>
+            <% } %>
+            
+            <% if (isAuthenticated && (currentUser._id.toString() === quiz.createdBy._id.toString() || currentUser.role === 'admin')) { %>
+              <% if (currentUser._id.toString() === quiz.createdBy._id.toString()) { %>
+                <a href="/quizzes/<%= quiz._id %>/questions/create" class="btn btn-sm btn-outline-primary ms-2">
+                  <i class="bi bi-plus-circle"></i> Legg til spørsmål
+                </a>
+              <% } %>
+              <button class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteQuizModal">
+                <i class="bi bi-trash"></i> Slett
+              </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      
+      <% if (quiz.questions.length > 0) { %>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="h4 mb-0">Spørsmålsoversikt</h2>
+          </div>
+          <div class="list-group list-group-flush">
+            <% quiz.questions.forEach((question, index) => { %>
+              <div class="list-group-item">
+                <h5 class="mb-1">Spørsmål <%= index + 1 %></h5>
+                <p class="mb-1"><%= question.questionText %></p>
+                <small class="text-muted">
+                  Type: 
+                  <% if (question.questionType === 'multiple-choice') { %>
+                    Flervalg
+                  <% } else if (question.questionType === 'true-false') { %>
+                    Sant/Usant
+                  <% } else if (question.questionType === 'fill-in-blank') { %>
+                    Fyll inn
+                  <% } else if (question.questionType === 'matching') { %>
+                    Koble sammen
+                  <% } %>
+                  | Poeng: <%= question.points %> | Tid: <%= question.timeLimit %> sekunder
+                </small>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="h4 mb-0">Relaterte Quizzer</h2>
+        </div>
+        <div class="card-body">
+          <% if (typeof relatedQuizzes !== 'undefined' && relatedQuizzes && relatedQuizzes.length > 0) { %>
+            <div class="list-group">
+              <% relatedQuizzes.forEach(function(relatedQuiz) { %>
+                <a href="/quizzes/<%= relatedQuiz._id %>" class="list-group-item list-group-item-action">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><%= relatedQuiz.title %></h5>
+                    <span class="badge bg-<%= relatedQuiz.difficulty === 'Lett' ? 'success' : relatedQuiz.difficulty === 'Middels' ? 'warning' : 'danger' %>">
+                      <%= relatedQuiz.difficulty %>
+                    </span>
+                  </div>
+                  <p class="mb-1"><%= relatedQuiz.description.length > 60 ? relatedQuiz.description.substring(0, 60) + '...' : relatedQuiz.description %></p>
+                  <small class="text-muted">
+                    <i class="bi bi-question-circle"></i> <%= relatedQuiz.questions.length %> spørsmål
+                  </small>
+                </a>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="mb-0">Ingen relaterte quizzer funnet.</p>
+          <% } %>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h2 class="h4 mb-0">Topprangeringer</h2>
+        </div>
+        <div class="card-body">
+          <% if (typeof topScores !== 'undefined' && topScores && topScores.length > 0) { %>
+            <ol class="list-group list-group-numbered">
+              <% topScores.forEach(function(score) { %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div class="ms-2 me-auto">
+                    <div class="fw-bold"><%= score.user.username || 'Anonym' %></div>
+                    <%= new Date(score.date).toLocaleDateString('no-NO') %>
+                  </div>
+                  <span class="badge bg-primary rounded-pill"><%= score.score %> poeng</span>
+                </li>
+              <% }); %>
+            </ol>
+          <% } else { %>
+            <p class="mb-0">Ingen poengsummer registrert ennå. Vær den første til å spille denne quizen!</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Quiz Modal -->
+<% if (isAuthenticated && (currentUser._id.toString() === quiz.createdBy._id.toString() || currentUser.role === 'admin')) { %>
+  <div class="modal fade" id="deleteQuizModal" tabindex="-1" aria-labelledby="deleteQuizModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteQuizModalLabel">Bekreft sletting</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Er du sikker på at du vil slette quizen "<%= quiz.title %>"?</p>
+          <p class="text-danger"><strong>Dette vil også slette alle spørsmål og resultater knyttet til quizen. Handlingen kan ikke angres.</strong></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+          <form action="/quizzes/<%= quiz._id %>/delete" method="POST">
+            <button type="submit" class="btn btn-danger">Slett quiz</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle quiz liking
+    const likeButton = document.getElementById('likeButton');
+    if (likeButton) {
+      likeButton.addEventListener('click', async function() {
+        const quizId = this.getAttribute('data-quiz-id');
+        try {
+          const response = await fetch(`/quizzes/${quizId}/like`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update likes count
+            document.getElementById('likes-count').textContent = data.likes;
+            
+            // Disable like button after successful like
+            likeButton.disabled = true;
+            likeButton.innerHTML = '<i class="bi bi-heart-fill"></i> Likt';
+          }
+        } catch (err) {
+          console.error('Error liking quiz:', err);
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>
