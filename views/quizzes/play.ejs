@@ -372,17 +372,19 @@
       const options = optionsList.querySelectorAll('button');
       options.forEach(btn => {
         btn.disabled = true;
-        
-        // Get index of this option
-        const btnIndex = parseInt(btn.getAttribute('data-index'));
-        
-        // Highlight correct and incorrect answers
-        if (question.options[btnIndex].isCorrect) {
-          btn.classList.add('list-group-item-success');
-        } else if (btn === selectedBtn && !isCorrect) {
-          btn.classList.add('list-group-item-danger');
-        }
       });
+      
+      // Hide the options list after a brief delay (to allow the user to see their selection)
+      setTimeout(() => {
+        optionsList.style.display = 'none';
+      }, 800);
+      
+      // Highlight correct and incorrect answers - only for the selected option
+      if (isCorrect) {
+        selectedBtn.classList.add('list-group-item-success');
+      } else {
+        selectedBtn.classList.add('list-group-item-danger');
+      }
       
       // Show feedback
       feedbackContainer.style.display = 'block';
@@ -408,7 +410,7 @@
       nextBtn.style.display = 'block';
     }
     
-    // Check fill in the blank answer
+    // Update the checkFillInBlankAnswer function
     function checkFillInBlankAnswer(userAnswer, question) {
       // Stop timer
       clearInterval(timer);
@@ -416,6 +418,12 @@
       // Disable input
       blankAnswer.disabled = true;
       blankSubmit.disabled = true;
+      
+      // Hide the input field after a brief delay
+      setTimeout(() => {
+        blankAnswer.style.display = 'none';
+        blankSubmit.style.display = 'none';
+      }, 800);
       
       // Check answer (case insensitive)
       const isCorrect = userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
