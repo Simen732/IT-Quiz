@@ -94,7 +94,15 @@ app.get("*", (req, res) => {
 const server = http.createServer(app);
 
 // Initialize Socket.IO
-const io = socketIo(server);
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.NODE_ENV === 'production' 
+      ? "https://quiz.jackal.ikt-fag.no" 
+      : ["http://localhost:3000", "http://localhost:6000"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
 // Set up Socket.IO connection handling
 require('./sockets/quizSocket')(io);
