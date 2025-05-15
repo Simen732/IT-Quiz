@@ -18,6 +18,13 @@ require('./config/passport')(passport);
 // Initialize express app
 const app = express();
 
+// Force HTTP protocol (add after app = express())
+app.set('trust proxy', false);
+app.use((req, res, next) => {
+  req.protocol = 'http';
+  next();
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
