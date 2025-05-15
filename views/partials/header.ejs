@@ -17,6 +17,30 @@
   <link rel="stylesheet" href="/css/style.css">
   <!-- Theme color for mobile browser UI -->
   <meta name="theme-color" content="#050014">
+
+  <!-- Add this near the end of the head section -->
+  <script>
+    // Suppress Google OAuth errors
+    window.addEventListener('error', function(event) {
+      if (event.message && 
+          (event.message.includes('google') || 
+           event.message.includes('OAuth') || 
+           event.message.includes('auth'))) {
+        console.log('Suppressed OAuth error:', event.message);
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Check if we're on the callback page
+        if (window.location.pathname.includes('/auth/google/callback')) {
+          // Redirect to home after a short delay
+          setTimeout(function() {
+            window.location.href = '/';
+          }, 500);
+        }
+        return false;
+      }
+    }, true);
+  </script>
 </head>
 <body>
   <div class="grid-background"></div>

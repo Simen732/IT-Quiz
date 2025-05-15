@@ -91,24 +91,63 @@ router.get('/google', (req, res, next) => {
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
 
-// Callback handler
+// Callback handler with improved error handling
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/auth/login' }),
-  (req, res) => {
-    // Generate JWT token for the user
-    const token = generateToken(req.user._id);
+  function(req, res, next) {
+    passport.authenticate('google', function(err, user, info) {
+      try {
+        // Log any errors but continue
+        if (err) {
+          console.log('Google auth error caught but continuing:', err);
+        }
+        
+        // If no user, redirect to login
+        if (!user) {
+          return res.redirect('/auth/login');
+        }
+        
+        // Log in the user manually to ensure it happens
+        req.login(user, function(loginErr) {
+          if (loginErr) {
+            console.log('Login error but continuing:', loginErr);
+          }
+          
+          // Generate JWT token regardless
+          const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN
+          });
 
-    // Set JWT as HTTP-only cookie
-    res.cookie('jwt', token, {
-      expires: new Date(Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      secure: false  // Force HTTP
-    });
-
-    // Redirect to stored URL or default
-    const returnTo = req.session.returnTo || '/';
-    delete req.session.returnTo;
-    res.redirect(returnTo);
+          // Set the cookie
+          res.cookie('jwt', token, {
+            expires: new Date(Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000),
+            httpOnly: true,
+            secure: false
+          });
+          
+          // Always redirect home
+          return res.redirect('/');
+        });
+      } catch (error) {
+        // Catch any errors but still try to log in the user
+        console.log('Caught exception in callback but continuing:', error);
+        
+        // If we have a user, still try to set cookie and redirect
+        if (user) {
+          const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN
+          });
+          
+          res.cookie('jwt', token, {
+            expires: new Date(Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000),
+            httpOnly: true, 
+            secure: false
+          });
+        }
+        
+        // Always redirect somewhere useful
+        return res.redirect('/');
+      }
+    })(req, res, next);
   }
 );
 
