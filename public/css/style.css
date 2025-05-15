@@ -865,3 +865,26 @@ body, p, span, div, a, button, input, select, textarea, label, .text-dark,
 .quiz-stats .badge.bg-light.text-dark {
   color: #f0f0ff !important;
 }
+
+/* Ensure disabled form elements remain visible */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.list-group-item-action:disabled {
+  color: var(--text-primary) !important;
+  opacity: 0.75 !important;
+}
+
+/* Fix colors on success/error states */
+.list-group-item-success {
+  background-color: rgba(0, 204, 142, 0.2) !important;
+  border-color: var(--success) !important;
+  color: var(--text-primary) !important;
+}
+
+.list-group-item-danger {
+  background-color: rgba(255, 51, 119, 0.2) !important;
+  border-color: var(--danger) !important;
+  color: var(--text-primary) !important;
+}

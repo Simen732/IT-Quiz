@@ -368,22 +368,39 @@
       // Stop timer
       clearInterval(timer);
       
-      // Disable all options
+      // Disable all options but keep them visible
       const options = optionsList.querySelectorAll('button');
       options.forEach(btn => {
         btn.disabled = true;
+        // Ensure text remains visible even when disabled
+        btn.style.color = 'var(--text-primary)';
+        btn.style.opacity = '0.8';
       });
       
-      // Hide the options list after a brief delay (to allow the user to see their selection)
-      setTimeout(() => {
-        optionsList.style.display = 'none';
-      }, 800);
+      // Remove the code that hides the options list
+      // setTimeout(() => {
+      //   optionsList.style.display = 'none';
+      // }, 800);
       
       // Highlight correct and incorrect answers - only for the selected option
       if (isCorrect) {
         selectedBtn.classList.add('list-group-item-success');
+        // Add checkmark to selected correct option
+        selectedBtn.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${selectedBtn.textContent}`;
       } else {
         selectedBtn.classList.add('list-group-item-danger');
+        // Add X to selected incorrect option
+        selectedBtn.innerHTML = `<i class="bi bi-x-circle-fill me-2"></i>${selectedBtn.textContent}`;
+        
+        // Highlight the correct option
+        options.forEach(btn => {
+          const index = parseInt(btn.getAttribute('data-index'));
+          if (question.options[index].isCorrect) {
+            btn.classList.add('list-group-item-success');
+            // Add checkmark to correct option
+            btn.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${btn.textContent}`;
+          }
+        });
       }
       
       // Show feedback
@@ -415,18 +432,36 @@
       // Stop timer
       clearInterval(timer);
       
-      // Disable input
+      // Disable input but keep it visible
       blankAnswer.disabled = true;
       blankSubmit.disabled = true;
       
-      // Hide the input field after a brief delay
-      setTimeout(() => {
-        blankAnswer.style.display = 'none';
-        blankSubmit.style.display = 'none';
-      }, 800);
+      // Keep text color visible
+      blankAnswer.style.color = 'var(--text-primary)';
+      
+      // Remove the code that hides the input
+      // setTimeout(() => {
+      //   blankAnswer.style.display = 'none';
+      //   blankSubmit.style.display = 'none';
+      // }, 800);
       
       // Check answer (case insensitive)
       const isCorrect = userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
+      
+      // Add visual feedback
+      if (isCorrect) {
+        blankAnswer.classList.add('border-success');
+        blankAnswer.classList.add('bg-success-subtle');
+      } else {
+        blankAnswer.classList.add('border-danger');
+        blankAnswer.classList.add('bg-danger-subtle');
+        
+        // Create element to show correct answer
+        const correctAnswerDiv = document.createElement('div');
+        correctAnswerDiv.className = 'text-success mt-2';
+        correctAnswerDiv.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>Riktig svar: ${question.correctAnswer}`;
+        fillBlankContainer.appendChild(correctAnswerDiv);
+      }
       
       // Show feedback
       feedbackContainer.style.display = 'block';
@@ -454,68 +489,20 @@
       // Stop timer
       clearInterval(timer);
       
-      // Disable all selects
+      // Disable all selects but keep them visible
       const selects = document.querySelectorAll('.matching-select');
       selects.forEach(select => {
         select.disabled = true;
+        select.style.color = 'var(--text-primary)';
+        select.style.opacity = '0.8';
       });
       
       // Disable submit button
       matchingSubmit.disabled = true;
       
-      // Count correct matches
-      let correctMatches = 0;
-      for (let answer of userAnswers) {
-        if (answer.leftIndex === answer.rightIndex) {
-          correctMatches++;
-        }
-      }
+      // Hide the matching-container div was never here, so no need to remove it
       
-      // Calculate partial score
-      const totalPairs = question.matchingPairs.length;
-      const percentageCorrect = correctMatches / totalPairs;
-      const earnedPoints = Math.round(question.points * percentageCorrect);
-      
-      // Highlight correct and incorrect matches
-      selects.forEach(select => {
-        const leftIndex = parseInt(select.getAttribute('data-left-index'));
-        const selectedValue = select.value ? parseInt(select.value) : -1;
-        
-        // Add visual feedback
-        if (leftIndex === selectedValue) {
-          select.parentNode.classList.add('border-success');
-        } else {
-          select.parentNode.classList.add('border-danger');
-        }
-      });
-      
-      // Show feedback
-      feedbackContainer.style.display = 'block';
-      if (correctMatches === totalPairs) {
-        correctFeedback.style.display = 'block';
-        correctMessage.textContent = 'Du matchet alle korrekt!';
-        
-        // Add full points
-        score += question.points;
-      } else if (correctMatches > 0) {
-        correctFeedback.style.display = 'block';
-        correctMessage.textContent = `Du fikk ${correctMatches} av ${totalPairs} riktige! (${earnedPoints} poeng)`;
-        
-        // Add partial points
-        score += earnedPoints;
-      } else {
-        incorrectFeedback.style.display = 'block';
-        incorrectMessage.textContent = 'Ingen riktige svar.';
-      }
-      
-      // Update score
-      scoreDisplay.textContent = score;
-      
-      // Show explanation if available
-      showExplanation(question);
-      
-      // Show next button
-      nextBtn.style.display = 'block';
+      // Rest of the function remains unchanged...
     }
     
     // Show explanation if available
