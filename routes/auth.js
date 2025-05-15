@@ -85,13 +85,31 @@ router.get('/reset-password/:token', authController.getResetPasswordPage);
 router.post('/reset-password/:token', resetPasswordValidation, authController.resetPassword);
 
 // Google OAuth routes
-router.get('/google', passport.authenticate('google', { 
-  scope: ['profile', 'email'] 
-}));
+router.get('/google', (req, res, next) => {
+  // Store current protocol and host for return after OAuth
+  req.session.returnTo = `http://${req.headers.host}`;
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
 // Callback handler
-router.get('/google/callback', passport.authenticate('google', { 
-  failureRedirect: '/auth/login' 
-}), authController.googleCallback);
+router.get('/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/auth/login' }),
+  (req, res) => {
+    // Generate JWT token for the user
+    const token = generateToken(req.user._id);
+
+    // Set JWT as HTTP-only cookie
+    res.cookie('jwt', token, {
+      expires: new Date(Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: false  // Force HTTP
+    });
+
+    // Redirect to stored URL or default
+    const returnTo = req.session.returnTo || '/';
+    delete req.session.returnTo;
+    res.redirect(returnTo);
+  }
+);
 
 module.exports = router;

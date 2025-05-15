@@ -60,5 +60,48 @@
       });
     });
   </script>
+  <script>
+    // Force all links to use HTTP instead of HTTPS
+    document.addEventListener('click', function(e) {
+      // Check if the clicked element is a link
+      if (e.target.tagName === 'A' || e.target.closest('a')) {
+        const link = e.target.tagName === 'A' ? e.target : e.target.closest('a');
+        const href = link.getAttribute('href');
+        
+        // If it's an absolute link starting with https:, convert it to http:
+        if (href && href.startsWith('https:')) {
+          link.setAttribute('href', href.replace(/^https:/, 'http:'));
+        }
+      }
+    }, true);
+    
+    // Prevent form submissions to HTTPS
+    document.addEventListener('submit', function(e) {
+      const form = e.target;
+      const action = form.getAttribute('action');
+      
+      // If form action is HTTPS, convert to HTTP
+      if (action && action.startsWith('https:')) {
+        form.setAttribute('action', action.replace(/^https:/, 'http:'));
+      }
+    });
+    
+    // Override fetch and XMLHttpRequest to always use HTTP
+    const originalFetch = window.fetch;
+    window.fetch = function() {
+      if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].startsWith('https:')) {
+        arguments[0] = arguments[0].replace(/^https:/, 'http:');
+      }
+      return originalFetch.apply(this, arguments);
+    };
+    
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function() {
+      if (arguments[1] && typeof arguments[1] === 'string' && arguments[1].startsWith('https:')) {
+        arguments[1] = arguments[1].replace(/^https:/, 'http:');
+      }
+      return originalOpen.apply(this, arguments);
+    };
+  </script>
 </body>
 </html>
