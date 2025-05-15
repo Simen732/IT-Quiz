@@ -18,25 +18,27 @@
   <!-- Theme color for mobile browser UI -->
   <meta name="theme-color" content="#050014">
 
-  <!-- Add this near the end of the head section -->
+  <!-- Keep this script in header.ejs -->
   <script>
-    // Suppress Google OAuth errors
+    // Check if we're on the Google callback page
+    if (window.location.pathname.includes('/auth/google/callback')) {
+      // Immediately redirect to home page to avoid showing the error
+      window.location.href = '/';
+    }
+    
+    // Suppress any Google Auth errors
     window.addEventListener('error', function(event) {
+      // Check if error is related to Google or OAuth
       if (event.message && 
           (event.message.includes('google') || 
            event.message.includes('OAuth') || 
            event.message.includes('auth'))) {
-        console.log('Suppressed OAuth error:', event.message);
+        // Prevent the error from showing
         event.preventDefault();
         event.stopPropagation();
         
-        // Check if we're on the callback page
-        if (window.location.pathname.includes('/auth/google/callback')) {
-          // Redirect to home after a short delay
-          setTimeout(function() {
-            window.location.href = '/';
-          }, 500);
-        }
+        // Redirect to home page
+        window.location.href = '/';
         return false;
       }
     }, true);

@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
-const authMiddleware = require('./middlewares/authMiddleware'); // Add this line
+const authMiddleware = require('./middlewares/authMiddleware');
 const http = require('http');
 const socketIo = require('socket.io');
 
@@ -17,33 +17,6 @@ require('./config/passport')(passport);
 
 // Initialize express app
 const app = express();
-
-// Force HTTP protocol (add after app = express())
-app.set('trust proxy', false);
-app.use((req, res, next) => {
-  req.protocol = 'http';
-  next();
-});
-
-// Force HTTP protocol everywhere
-app.use((req, res, next) => {
-  // Override all headers and properties that might cause HTTPS redirects
-  req.headers['x-forwarded-proto'] = 'http';
-  req.protocol = 'http';
-  req.secure = false;
-  
-  // Override res.redirect to always use HTTP
-  const originalRedirect = res.redirect;
-  res.redirect = function(url) {
-    // If it's an absolute URL starting with https:, convert to http:
-    if (typeof url === 'string' && url.startsWith('https:')) {
-      arguments[0] = url.replace(/^https:/, 'http:');
-    }
-    originalRedirect.apply(this, arguments);
-  };
-  
-  next();
-});
 
 // Middleware
 app.use(express.json());
