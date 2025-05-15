@@ -346,3 +346,55 @@ exports.reviewQuiz = async (req, res) => {
     res.status(500).render('error', { message: 'Noe gikk galt ved visning av quiz.' });
   }
 };
+
+// Host multiplayer quiz
+exports.hostQuiz = async (req, res) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id)
+      .populate('questions')
+      .populate('createdBy', 'username');
+    
+    if (!quiz) {
+      return res.status(404).render('error', { message: 'Quiz ble ikke funnet.' });
+    }
+    
+    res.render('quizzes/host', {
+      title: `Host: ${quiz.title}`,
+      quiz,
+      // Convert questions to JSON for frontend JavaScript
+      quizData: JSON.stringify({
+        id: quiz._id,
+        title: quiz.title,
+        questions: quiz.questions
+      })
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('error', { message: 'Noe gikk galt ved start av multiplayer quiz.' });
+  }
+};
+
+// Join quiz form
+exports.joinQuizForm = (req, res) => {
+  res.render('quizzes/join', {
+    title: 'Bli med på quiz'
+  });
+};
+
+// Join quiz
+exports.joinQuiz = (req, res) => {
+  const { gameCode, playerName } = req.body;
+  
+  if (!gameCode || !playerName) {
+    return res.render('quizzes/join', {
+      title: 'Bli med på quiz',
+      error: 'Både spillkode og navn er påkrevd'
+    });
+  }
+  
+  res.render('quizzes/play-multiplayer', {
+    title: 'Multiplayer Quiz',
+    gameCode,
+    playerName
+  });
+};

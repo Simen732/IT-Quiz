@@ -1,0 +1,343 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <!-- Lobby Screen -->
+      <div id="lobby-screen" class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h1 class="h3 mb-0">Lobby: <%= quiz.title %></h1>
+        </div>
+        <div class="card-body text-center">
+          <h2 class="display-4 mb-4" id="game-code"></h2>
+          <p class="lead">Del denne koden med spillere som skal delta</p>
+          
+          <div class="mt-4 mb-4">
+            <h4>Spillere</h4>
+            <div id="players-list" class="list-group">
+              <div class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Laster...</span>
+                </div>
+                <p class="mt-2">Venter på spillere...</p>
+              </div>
+            </div>
+          </div>
+          
+          <button id="start-game-btn" class="btn btn-success btn-lg mt-3" disabled>
+            <i class="bi bi-play-fill"></i> Start Quiz
+          </button>
+        </div>
+      </div>
+      
+      <!-- Host Quiz Screen (initially hidden) -->
+      <div id="host-quiz-screen" class="card" style="display: none;">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h1 class="h3 mb-0"><%= quiz.title %></h1>
+          <div class="quiz-stats">
+            <span class="badge bg-light text-dark me-2">
+              <i class="bi bi-question-circle"></i> <span id="question-counter">1</span>/<span id="total-questions"><%= quiz.questions.length %></span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <div id="timer-container" class="mb-3">
+            <div class="progress">
+              <div id="timer-bar" class="progress-bar" role="progressbar" style="width: 100%"></div>
+            </div>
+            <div class="text-end mt-1">
+              <small class="text-muted">Tid igjen: <span id="timer-count">30</span> sekunder</small>
+            </div>
+          </div>
+          
+          <h2 id="question-text" class="mb-4"></h2>
+          
+          <!-- Live answers section -->
+          <div class="mt-4">
+            <h4>Svar innsendt: <span id="answers-count">0</span>/<span id="players-count">0</span></h4>
+            <div class="progress mb-3">
+              <div id="answers-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div class="mt-3">
+              <h5>Live poengsum:</h5>
+              <div id="live-scores" class="d-flex flex-wrap justify-content-center">
+                <!-- Player scores will be inserted here dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-footer d-flex justify-content-between">
+          <button id="scoreboard-btn" class="btn btn-info">Vis poengtavle</button>
+          <button id="next-btn" class="btn btn-primary">Neste spørsmål</button>
+        </div>
+      </div>
+      
+      <!-- Scoreboard (initially hidden) -->
+      <div id="scoreboard-screen" class="card text-center" style="display: none;">
+        <div class="card-header bg-primary text-white">
+          <h1 class="h3 mb-0">Poengtavle</h1>
+        </div>
+        <div class="card-body">
+          <h2 class="mb-4">Resultater</h2>
+          
+          <div id="scoreboard-list" class="list-group mb-4">
+            <!-- Scores will be inserted here -->
+          </div>
+        </div>
+        <div class="card-footer">
+          <button id="continue-btn" class="btn btn-primary">Fortsett</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Quiz data from server
+    const quizData = <%- quizData %>;
+    let socket = io();
+    let gameCode;
+    let players = [];
+    let answeredPlayers = new Set();
+    let currentQuestion = 0;
+    let timer;
+    
+    // UI Elements
+    const lobbyScreen = document.getElementById('lobby-screen');
+    const hostQuizScreen = document.getElementById('host-quiz-screen');
+    const scoreboardScreen = document.getElementById('scoreboard-screen');
+    const gameCodeDisplay = document.getElementById('game-code');
+    const playersList = document.getElementById('players-list');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const questionCounter = document.getElementById('question-counter');
+    const totalQuestions = document.getElementById('total-questions');
+    const questionText = document.getElementById('question-text');
+    const timerBar = document.getElementById('timer-bar');
+    const timerCount = document.getElementById('timer-count');
+    const answersCount = document.getElementById('answers-count');
+    const playersCount = document.getElementById('players-count');
+    const answersProgress = document.getElementById('answers-progress');
+    const nextBtn = document.getElementById('next-btn');
+    const scoreboardBtn = document.getElementById('scoreboard-btn');
+    const scoreboardList = document.getElementById('scoreboard-list');
+    const continueBtn = document.getElementById('continue-btn');
+    
+    // Create a new game when the page loads
+    socket.emit('create-game', quizData);
+    
+    // Handle game creation response
+    socket.on('game-created', (data) => {
+      gameCode = data.gameCode;
+      gameCodeDisplay.textContent = gameCode;
+    });
+    
+    // Handle player joining
+    socket.on('player-joined', (data) => {
+      players = data.players;
+      updatePlayersList();
+      startGameBtn.disabled = players.length === 0;
+      
+      // Update player count in quiz screen
+      playersCount.textContent = players.length;
+    });
+    
+    // Handle game start
+    socket.on('game-started', () => {
+      lobbyScreen.style.display = 'none';
+      hostQuizScreen.style.display = 'block';
+    });
+    
+    // Handle new question
+    socket.on('new-question', (data) => {
+      // Reset for new question
+      answeredPlayers.clear();
+      updateAnswersCount();
+      
+      // Show question screen
+      scoreboardScreen.style.display = 'none';
+      hostQuizScreen.style.display = 'block';
+      
+      // Update UI
+      currentQuestion = data.questionNumber - 1;
+      questionCounter.textContent = data.questionNumber;
+      questionText.textContent = data.question.questionText;
+      
+      // Setup timer
+      const timeLimit = data.question.timeLimit;
+      timerCount.textContent = timeLimit;
+      timerBar.style.width = '100%';
+      startTimer(timeLimit);
+    });
+    
+    // Handle player answer
+    socket.on('player-answered', (data) => {
+      answeredPlayers.add(data.playerId);
+      updateAnswersCount();
+      
+      // Show player score if available
+      if (data.score !== undefined) {
+        // Find or create a score display element for this player
+        let playerScoreEl = document.getElementById(`score-${data.playerId}`);
+        if (!playerScoreEl) {
+          playerScoreEl = document.createElement('div');
+          playerScoreEl.id = `score-${data.playerId}`;
+          playerScoreEl.className = 'player-score alert alert-info mt-1 mb-1 p-2';
+          document.getElementById('live-scores').appendChild(playerScoreEl);
+        }
+        
+        playerScoreEl.innerHTML = `
+          <small>${data.name}: ${data.score} poeng ${data.correct ? '✓' : ''}</small>
+        `;
+      }
+    });
+    
+    // Handle scoreboard display
+    socket.on('scoreboard', (data) => {
+      hostQuizScreen.style.display = 'none';
+      scoreboardScreen.style.display = 'block';
+      
+      // Show scores
+      const scores = data.scores;
+      scoreboardList.innerHTML = '';
+      
+      scores.forEach((player, index) => {
+        const scoreItem = document.createElement('div');
+        scoreItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        // Add medal for top 3
+        let rankIcon = '';
+        if (index === 0) rankIcon = '<span class="badge bg-warning me-2">🥇</span>';
+        else if (index === 1) rankIcon = '<span class="badge bg-secondary me-2">🥈</span>';
+        else if (index === 2) rankIcon = '<span class="badge bg-danger me-2">🥉</span>';
+        
+        scoreItem.innerHTML = `
+          <div>
+            ${rankIcon}<span>${index + 1}. ${player.name}</span>
+          </div>
+          <span class="badge bg-primary rounded-pill">${player.score} poeng</span>
+        `;
+        
+        scoreboardList.appendChild(scoreItem);
+      });
+      
+      // If this is the final scoreboard
+      if (data.final) {
+        continueBtn.textContent = 'Avslutt';
+      }
+    });
+    
+    // Start game button click handler
+    startGameBtn.addEventListener('click', () => {
+      socket.emit('start-game', { gameCode });
+    });
+    
+    // Next question button click handler
+    nextBtn.addEventListener('click', () => {
+      clearInterval(timer);
+      socket.emit('next-question', { gameCode });
+    });
+    
+    // Show scoreboard button click handler
+    scoreboardBtn.addEventListener('click', () => {
+      clearInterval(timer);
+      socket.emit('show-scoreboard', { gameCode });
+    });
+    
+    // Continue button click handler
+    continueBtn.addEventListener('click', () => {
+      const isLastQuestion = currentQuestion >= quizData.questions.length - 1;
+      
+      if (isLastQuestion) {
+        window.location.href = `/quizzes/${quizData.id}`;
+      } else {
+        socket.emit('next-question', { gameCode });
+      }
+    });
+    
+    // Update the players list in the UI
+    function updatePlayersList() {
+      playersList.innerHTML = '';
+      
+      if (players.length === 0) {
+        playersList.innerHTML = `
+          <div class="text-center py-3">
+            <p class="mb-0">Ingen spillere har blitt med ennå</p>
+          </div>
+        `;
+        return;
+      }
+      
+      players.forEach(player => {
+        const playerItem = document.createElement('div');
+        playerItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        playerItem.innerHTML = `
+          <span>${player.name}</span>
+          <button class="btn btn-sm btn-outline-danger kick-btn" data-player-id="${player.id}">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        `;
+        playersList.appendChild(playerItem);
+      });
+      
+      // Add event listeners to kick buttons
+      document.querySelectorAll('.kick-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const playerId = e.currentTarget.getAttribute('data-player-id');
+          socket.emit('kick-player', { gameCode, playerId });
+        });
+      });
+    }
+    
+    // Update the answers count display
+    function updateAnswersCount() {
+      answersCount.textContent = answeredPlayers.size;
+      
+      // Update progress bar
+      const percentage = players.length > 0 ? (answeredPlayers.size / players.length) * 100 : 0;
+      answersProgress.style.width = percentage + '%';
+      
+      // Enable next button if all players have answered
+      if (answeredPlayers.size === players.length) {
+        nextBtn.disabled = false;
+      }
+    }
+    
+    // Start timer for current question
+    function startTimer(duration) {
+      // Clear any existing timer
+      if (timer) clearInterval(timer);
+      
+      let timeLeft = duration;
+      nextBtn.disabled = true;
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        timerCount.textContent = timeLeft;
+        
+        // Update progress bar
+        const percentage = (timeLeft / duration) * 100;
+        timerBar.style.width = percentage + '%';
+        
+        // Change color when time is running out
+        if (percentage < 30) {
+          timerBar.classList.add('bg-danger');
+        } else {
+          timerBar.classList.remove('bg-danger');
+        }
+        
+        // Time's up
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          nextBtn.disabled = false;
+        }
+      }, 1000);
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

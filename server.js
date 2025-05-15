@@ -7,6 +7,8 @@ const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
 const authMiddleware = require('./middlewares/authMiddleware'); // Add this line
+const http = require('http');
+const socketIo = require('socket.io');
 
 dotenv.config();
 
@@ -88,8 +90,17 @@ app.get("*", (req, res) => {
     res.render("error", {message: "Siden finnes ikke"});
 }); 
 
-// Start server
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const io = socketIo(server);
+
+// Set up Socket.IO connection handling
+require('./sockets/quizSocket')(io);
+
+// Replace app.listen with server.listen
 const PORT = process.env.PORT || 6000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

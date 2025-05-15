@@ -46,6 +46,9 @@
           <% if (quiz.questions.length > 0) { %>
             <div class="d-grid gap-2">
               <a href="/quizzes/<%= quiz._id %>/play" class="btn btn-primary btn-lg">Start Quiz</a>
+              <a href="/quizzes/<%= quiz._id %>/host" class="btn btn-info btn-lg">
+                <i class="bi bi-people-fill"></i> Host Multiplayer
+              </a>
             </div>
           <% } else { %>
             <div class="alert alert-warning">

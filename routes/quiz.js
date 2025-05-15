@@ -44,12 +44,19 @@ router.get('/', quizController.getAllQuizzes);
 router.get('/create', authMiddleware.protect, quizController.getCreateQuizForm);
 router.post('/create', authMiddleware.protect, quizValidation, quizController.createQuiz);
 
+// Move these routes BEFORE any routes with /:id parameter
+router.get('/join', quizController.joinQuizForm);
+router.post('/join', quizController.joinQuiz);
+
 // Then put the parameter routes after
-router.get('/category/:category', quizController.getQuizzesByCategory);
 router.get('/:id', quizController.getQuizDetails);
 router.get('/:id/play', quizController.getPlayQuiz);
 router.get('/:id/questions/create', authMiddleware.protect, quizController.getCreateQuestionForm);
-// ... other routes with :id parameter
+router.get('/:id/host', authMiddleware.protect, quizController.hostQuiz);
+router.post('/:id/questions/create', authMiddleware.protect, questionValidation, quizController.createQuestion);
+router.post('/:id/delete', authMiddleware.protect, quizController.deleteQuiz);
+router.post('/:id/like', authMiddleware.protect, quizController.likeQuiz);
+router.get('/:id/review', authMiddleware.protect, quizController.reviewQuiz);
 
 // Protected quiz routes
 router.post('/:id/questions/create', authMiddleware.protect, questionValidation, quizController.createQuestion);

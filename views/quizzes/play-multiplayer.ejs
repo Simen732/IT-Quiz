@@ -1,0 +1,572 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <!-- Lobby Screen -->
+      <div id="player-lobby-screen" class="card">
+        <div class="card-header bg-primary text-white">
+          <h1 class="h3 mb-0">Venter på vert</h1>
+        </div>
+        <div class="card-body text-center">
+          <div class="py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Laster...</span>
+            </div>
+            <h3 class="mt-3">Du er med i lobby!</h3>
+            <p class="lead">Venter på at verten skal starte quizen...</p>
+            <div class="alert alert-info">
+              <p class="mb-0">Din spillkode: <strong><%= gameCode %></strong></p>
+              <p class="mb-0">Ditt navn: <strong><%= playerName %></strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quiz Screen (initially hidden) -->
+      <div id="player-quiz-screen" class="card" style="display: none;">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h1 class="h3 mb-0">Multiplayer Quiz</h1>
+          <div class="quiz-stats">
+            <span class="badge bg-light text-dark me-2">
+              <i class="bi bi-question-circle"></i> <span id="question-counter">1</span>/<span id="total-questions">0</span>
+            </span>
+            <span class="badge bg-light text-dark">
+              <i class="bi bi-trophy"></i> <span id="current-score">0</span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <div id="timer-container" class="mb-3">
+            <div class="progress">
+              <div id="timer-bar" class="progress-bar" role="progressbar" style="width: 100%"></div>
+            </div>
+            <div class="text-end mt-1">
+              <small class="text-muted">Tid igjen: <span id="timer-count">30</span> sekunder</small>
+            </div>
+          </div>
+          
+          <h2 id="question-text" class="mb-4"></h2>
+          
+          <!-- Multiple Choice and True/False Template -->
+          <div id="multiple-choice-container" class="answer-container" style="display: none;">
+            <div id="options-list" class="list-group mb-3">
+              <!-- Options will be inserted here dynamically -->
+            </div>
+          </div>
+          
+          <!-- Fill in the Blank Template -->
+          <div id="fill-blank-container" class="answer-container" style="display: none;">
+            <div class="mb-3">
+              <input type="text" id="blank-answer" class="form-control" placeholder="Skriv inn ditt svar her">
+            </div>
+            <div class="d-grid">
+              <button id="blank-submit" class="btn btn-primary">Svar</button>
+            </div>
+          </div>
+          
+          <!-- Matching Template -->
+          <div id="matching-container" class="answer-container" style="display: none;">
+            <div id="matching-pairs" class="mb-3">
+              <!-- Matching pairs will be inserted here dynamically -->
+            </div>
+            <div class="d-grid">
+              <button id="matching-submit" class="btn btn-primary">Svar</button>
+            </div>
+          </div>
+          
+          <!-- Answer Confirmation -->
+          <div id="answer-submitted" class="text-center py-4" style="display: none;">
+            <div class="display-1 mb-3">
+              <i class="bi bi-check-circle-fill text-success"></i>
+            </div>
+            <h3>Svar sendt!</h3>
+            <p class="lead">Venter på at andre spillere skal svare...</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Scoreboard Screen (initially hidden) -->
+      <div id="scoreboard-screen" class="card text-center" style="display: none;">
+        <div class="card-header bg-primary text-white">
+          <h1 class="h3 mb-0">Poengtavle</h1>
+        </div>
+        <div class="card-body">
+          <h2 class="mb-4">Resultater</h2>
+          
+          <div id="scoreboard-list" class="list-group mb-4">
+            <!-- Scores will be inserted here -->
+          </div>
+          
+          <div id="your-rank" class="alert alert-info">
+            <!-- Your rank will be shown here -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Kicked Screen (initially hidden) -->
+      <div id="kicked-screen" class="card text-center" style="display: none;">
+        <div class="card-header bg-danger text-white">
+          <h1 class="h3 mb-0">Fjernet fra spillet</h1>
+        </div>
+        <div class="card-body">
+          <div class="display-1 mb-3">
+            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+          </div>
+          <h2>Du har blitt fjernet fra spillet</h2>
+          <p class="lead">Verten har fjernet deg fra denne quiz-sesjonen.</p>
+          <div class="mt-4">
+            <a href="/quizzes/join" class="btn btn-primary">Bli med på en annen quiz</a>
+            <a href="/" class="btn btn-outline-secondary mt-2 mt-md-0">Gå til forsiden</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const gameCode = '<%= gameCode %>';
+    const playerName = '<%= playerName %>';
+    let socket = io();
+    let playerId;
+    let timer;
+    let timeLeft;
+    let hasAnswered = false;
+    
+    // UI Elements
+    const lobbyScreen = document.getElementById('player-lobby-screen');
+    const quizScreen = document.getElementById('player-quiz-screen');
+    const scoreboardScreen = document.getElementById('scoreboard-screen');
+    const kickedScreen = document.getElementById('kicked-screen');
+    const questionCounter = document.getElementById('question-counter');
+    const totalQuestions = document.getElementById('total-questions');
+    const questionText = document.getElementById('question-text');
+    const timerBar = document.getElementById('timer-bar');
+    const timerCount = document.getElementById('timer-count');
+    const answerSubmitted = document.getElementById('answer-submitted');
+    const scoreboardList = document.getElementById('scoreboard-list');
+    const yourRank = document.getElementById('your-rank');
+    
+    // Answer containers
+    const multipleChoiceContainer = document.getElementById('multiple-choice-container');
+    const fillBlankContainer = document.getElementById('fill-blank-container');
+    const matchingContainer = document.getElementById('matching-container');
+    
+    // Option elements
+    const optionsList = document.getElementById('options-list');
+    const blankAnswer = document.getElementById('blank-answer');
+    const blankSubmit = document.getElementById('blank-submit');
+    const matchingPairs = document.getElementById('matching-pairs');
+    const matchingSubmit = document.getElementById('matching-submit');
+    
+    // Join the game when the page loads
+    socket.emit('join-game', { gameCode, playerName });
+    
+    // Handle join response
+    socket.on('join-success', (data) => {
+      playerId = data.playerId;
+    });
+    
+    // Handle join error
+    socket.on('join-error', (data) => {
+      alert(data.message);
+      window.location.href = '/quizzes/join';
+    });
+    
+    // Handle game start
+    socket.on('game-started', () => {
+      lobbyScreen.style.display = 'none';
+      quizScreen.style.display = 'block';
+    });
+    
+    // Handle new question
+    socket.on('new-question', (data) => {
+      // Reset for new question
+      resetQuestion();
+      
+      // Show quiz screen, hide scoreboard
+      scoreboardScreen.style.display = 'none';
+      quizScreen.style.display = 'block';
+      
+      // Update UI
+      questionCounter.textContent = data.questionNumber;
+      totalQuestions.textContent = data.totalQuestions;
+      questionText.textContent = data.question.questionText;
+      
+      // Start timer
+      timeLeft = data.question.timeLimit;
+      timerCount.textContent = timeLeft;
+      startTimer(data.question.timeLimit);
+      
+      // Show appropriate answer UI based on question type
+      showQuestionType(data.question);
+    });
+    
+    // Handle scoreboard display
+    socket.on('scoreboard', (data) => {
+      quizScreen.style.display = 'none';
+      scoreboardScreen.style.display = 'block';
+      
+      // Show scores
+      const scores = data.scores;
+      scoreboardList.innerHTML = '';
+      
+      scores.forEach((player, index) => {
+        const scoreItem = document.createElement('div');
+        scoreItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        // Add medal for top 3
+        let rankIcon = '';
+        if (index === 0) rankIcon = '<span class="badge bg-warning me-2">🥇</span>';
+        else if (index === 1) rankIcon = '<span class="badge bg-secondary me-2">🥈</span>';
+        else if (index === 2) rankIcon = '<span class="badge bg-danger me-2">🥉</span>';
+        
+        // Highlight current player
+        if (player.id === playerId) {
+          scoreItem.classList.add('active');
+          
+          // Set your rank information
+          yourRank.innerHTML = `
+            <strong>Din plassering:</strong> ${index + 1}. plass med ${player.score} poeng
+          `;
+        }
+        
+        scoreItem.innerHTML = `
+          <div>
+            ${rankIcon}<span>${index + 1}. ${player.name}</span>
+          </div>
+          <span class="badge bg-primary rounded-pill">${player.score} poeng</span>
+        `;
+        
+        scoreboardList.appendChild(scoreItem);
+      });
+    });
+    
+    // Handle game over
+    socket.on('game-over', (data) => {
+      quizScreen.style.display = 'none';
+      scoreboardScreen.style.display = 'block';
+      
+      // Show final scores (same as scoreboard)
+      const scores = data.scores;
+      scoreboardList.innerHTML = '';
+      
+      scores.forEach((player, index) => {
+        const scoreItem = document.createElement('div');
+        scoreItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        // Add medal for top 3
+        let rankIcon = '';
+        if (index === 0) rankIcon = '<span class="badge bg-warning me-2">🥇</span>';
+        else if (index === 1) rankIcon = '<span class="badge bg-secondary me-2">🥈</span>';
+        else if (index === 2) rankIcon = '<span class="badge bg-danger me-2">🥉</span>';
+        
+        // Highlight current player
+        if (player.id === playerId) {
+          scoreItem.classList.add('active');
+          
+          // Set your rank information
+          yourRank.innerHTML = `
+            <strong>Din endelige plassering:</strong> ${index + 1}. plass med ${player.score} poeng
+          `;
+        }
+        
+        scoreItem.innerHTML = `
+          <div>
+            ${rankIcon}<span>${index + 1}. ${player.name}</span>
+          </div>
+          <span class="badge bg-primary rounded-pill">${player.score} poeng</span>
+        `;
+        
+        scoreboardList.appendChild(scoreItem);
+      });
+    });
+    
+    // Handle host disconnect
+    socket.on('host-disconnected', () => {
+      clearInterval(timer);
+      alert('Verten har forlatt spillet. Du vil bli videresendt til hjemmesiden.');
+      window.location.href = '/';
+    });
+    
+    // Handle getting kicked
+    socket.on('kicked', () => {
+      clearInterval(timer);
+      lobbyScreen.style.display = 'none';
+      quizScreen.style.display = 'none';
+      scoreboardScreen.style.display = 'none';
+      kickedScreen.style.display = 'block';
+    });
+    
+    // Show appropriate question type UI
+    function showQuestionType(question) {
+      switch (question.questionType) {
+        case 'multiple-choice':
+        case 'true-false':
+          showMultipleChoiceQuestion(question);
+          break;
+        case 'fill-in-blank':
+          showFillInBlankQuestion(question);
+          break;
+        case 'matching':
+          showMatchingQuestion(question);
+          break;
+      }
+    }
+    
+    // Show multiple choice question
+    function showMultipleChoiceQuestion(question) {
+      multipleChoiceContainer.style.display = 'block';
+      optionsList.innerHTML = '';
+      
+      // Create option buttons
+      question.options.forEach((option, index) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.className = 'list-group-item list-group-item-action';
+        optionBtn.textContent = option.text;
+        optionBtn.setAttribute('data-index', index);
+        optionBtn.addEventListener('click', function() {
+          if (hasAnswered) return;
+          
+          hasAnswered = true;
+          submitAnswer(index, timeLeft);
+          
+          // Disable all options
+          const options = optionsList.querySelectorAll('button');
+          options.forEach(btn => {
+            btn.disabled = true;
+          });
+          
+          // Highlight selected option
+          this.classList.add('active');
+          
+          // Show answer submitted message
+          showAnswerSubmitted();
+        });
+        optionsList.appendChild(optionBtn);
+      });
+    }
+    
+    // Show fill in the blank question
+    function showFillInBlankQuestion(question) {
+      fillBlankContainer.style.display = 'block';
+      blankAnswer.value = '';
+      blankAnswer.focus();
+      
+      blankSubmit.onclick = function() {
+        if (hasAnswered) return;
+        
+        const userAnswer = blankAnswer.value.trim();
+        if (userAnswer === '') return;
+        
+        hasAnswered = true;
+        submitAnswer(userAnswer, timeLeft);
+        
+        // Disable input and button
+        blankAnswer.disabled = true;
+        blankSubmit.disabled = true;
+        
+        // Show answer submitted message
+        showAnswerSubmitted();
+      };
+      
+      // Allow Enter key to submit
+      blankAnswer.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          blankSubmit.click();
+        }
+      });
+    }
+    
+    // Show matching question
+    function showMatchingQuestion(question) {
+      matchingContainer.style.display = 'block';
+      matchingPairs.innerHTML = '';
+      
+      // Create a copy of the pairs for randomization
+      const leftItems = question.matchingPairs.map((pair, index) => ({ 
+        text: pair.left, 
+        originalIndex: index 
+      }));
+      
+      const rightItems = question.matchingPairs.map(pair => ({ 
+        text: pair.right, 
+        originalIndex: question.matchingPairs.indexOf(pair) 
+      }));
+      
+      // Shuffle the right items
+      shuffleArray(rightItems);
+      
+      // Create matching pairs UI
+      leftItems.forEach((leftItem, index) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'matching-row mb-2';
+        
+        const leftItemDiv = document.createElement('div');
+        leftItemDiv.className = 'matching-item-left';
+        leftItemDiv.innerHTML = `
+          <div class="input-group">
+            <span class="input-group-text">${index + 1}</span>
+            <span class="form-control">${leftItem.text}</span>
+          </div>
+        `;
+        
+        const rightSelect = document.createElement('select');
+        rightSelect.className = 'form-select matching-select';
+        rightSelect.setAttribute('data-left-index', leftItem.originalIndex);
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = "Velg matchende svar";
+        defaultOption.selected = true;
+        
+        rightSelect.appendChild(defaultOption);
+        
+        // Add options from shuffled right items
+        rightItems.forEach((rightItem, rightIndex) => {
+          const option = document.createElement('option');
+          option.value = rightItem.originalIndex;
+          option.textContent = rightItem.text;
+          rightSelect.appendChild(option);
+        });
+        
+        rowDiv.appendChild(leftItemDiv);
+        rowDiv.appendChild(rightSelect);
+        matchingPairs.appendChild(rowDiv);
+      });
+      
+      // Set up submit button
+      matchingSubmit.onclick = function() {
+        if (hasAnswered) return;
+        
+        const selections = document.querySelectorAll('.matching-select');
+        const answers = Array.from(selections).map(select => ({
+          leftIndex: parseInt(select.getAttribute('data-left-index')),
+          rightIndex: select.value ? parseInt(select.value) : -1
+        }));
+        
+        hasAnswered = true;
+        submitAnswer(answers, timeLeft);
+        
+        // Disable all selects
+        selections.forEach(select => {
+          select.disabled = true;
+        });
+        
+        // Disable submit button
+        matchingSubmit.disabled = true;
+        
+        // Show answer submitted message
+        showAnswerSubmitted();
+      };
+    }
+    
+    // Submit answer to server
+    function submitAnswer(answer, remainingTime) {
+      socket.emit('submit-answer', {
+        gameCode,
+        playerId,
+        answer,
+        timeRemaining: remainingTime
+      });
+    }
+    
+    // Show answer submitted confirmation
+    function showAnswerSubmitted() {
+      // Hide all answer containers
+      multipleChoiceContainer.style.display = 'none';
+      fillBlankContainer.style.display = 'none';
+      matchingContainer.style.display = 'none';
+      
+      // Show submitted message
+      answerSubmitted.style.display = 'block';
+    }
+    
+    // Reset question UI for a new question
+    function resetQuestion() {
+      // Reset answer state
+      hasAnswered = false;
+      
+      // Hide answer containers
+      multipleChoiceContainer.style.display = 'none';
+      fillBlankContainer.style.display = 'none';
+      matchingContainer.style.display = 'none';
+      answerSubmitted.style.display = 'none';
+      
+      // Reset timer bar
+      timerBar.classList.remove('bg-danger');
+    }
+    
+    // Start timer for current question
+    function startTimer(duration) {
+      // Clear any existing timer
+      if (timer) clearInterval(timer);
+      
+      timeLeft = duration;
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        timerCount.textContent = timeLeft;
+        
+        // Update progress bar
+        const percentage = (timeLeft / duration) * 100;
+        timerBar.style.width = percentage + '%';
+        
+        // Change color when time is running out
+        if (percentage < 30) {
+          timerBar.classList.add('bg-danger');
+        }
+        
+        // Time's up
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          
+          // If answer wasn't submitted, show timeout message
+          if (!hasAnswered) {
+            // Disable all inputs
+            const options = optionsList.querySelectorAll('button');
+            options.forEach(btn => {
+              btn.disabled = true;
+            });
+            
+            blankAnswer.disabled = true;
+            blankSubmit.disabled = true;
+            
+            const selects = document.querySelectorAll('.matching-select');
+            selects.forEach(select => {
+              select.disabled = true;
+            });
+            
+            matchingSubmit.disabled = true;
+            
+            // Show answer submitted with timeout message
+            multipleChoiceContainer.style.display = 'none';
+            fillBlankContainer.style.display = 'none';
+            matchingContainer.style.display = 'none';
+            
+            answerSubmitted.style.display = 'block';
+            answerSubmitted.querySelector('i').className = 'bi bi-alarm-fill text-warning';
+            answerSubmitted.querySelector('h3').textContent = 'Tiden er ute!';
+            answerSubmitted.querySelector('p').textContent = 'Du rakk ikke å svare på dette spørsmålet';
+          }
+        }
+      }, 1000);
+    }
+    
+    // Utility function to shuffle array
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

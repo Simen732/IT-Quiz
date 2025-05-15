@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h1 class="h3 mb-0">Bli med på quiz</h1>
+        </div>
+        <div class="card-body">
+          <% if (typeof error !== 'undefined') { %>
+            <div class="alert alert-danger">
+              <%= error %>
+            </div>
+          <% } %>
+          
+          <form action="/quizzes/join" method="POST">
+            <div class="mb-3">
+              <label for="gameCode" class="form-label">Spillkode</label>
+              <input type="text" class="form-control form-control-lg text-center" id="gameCode" name="gameCode" 
+                     placeholder="Skriv inn 6-sifret kode" maxlength="6" required>
+            </div>
+            
+            <div class="mb-4">
+              <label for="playerName" class="form-label">Ditt navn</label>
+              <input type="text" class="form-control" id="playerName" name="playerName" 
+                     placeholder="Skriv inn ditt navn" maxlength="20" required>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg">Bli med</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
