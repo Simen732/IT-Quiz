@@ -7,6 +7,7 @@ exports.isLoggedIn = async (req, res, next) => {
   if (req.isAuthenticated()) {
     res.locals.isAuthenticated = true;
     res.locals.currentUser = req.user;
+    res.locals.originalUrl = req.originalUrl;
     return next();
   }
   
@@ -25,6 +26,7 @@ exports.isLoggedIn = async (req, res, next) => {
         res.locals.isAuthenticated = true;
         res.locals.currentUser = currentUser;
         req.user = currentUser; // Make user available on req object
+        res.locals.originalUrl = req.originalUrl;
         return next();
       }
     }
@@ -35,6 +37,7 @@ exports.isLoggedIn = async (req, res, next) => {
   // Not authenticated via either method
   res.locals.isAuthenticated = false;
   res.locals.currentUser = null;
+  res.locals.originalUrl = req.originalUrl;
   next();
 };
 

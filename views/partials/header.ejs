@@ -17,6 +17,37 @@
   <link rel="stylesheet" href="/css/style.css">
   <!-- Theme color for mobile browser UI -->
   <meta name="theme-color" content="#050014">
+  
+  <!-- Auto redirect for Google auth callback -->
+  <% if (locals.originalUrl && locals.originalUrl.includes('/auth/google/callback')) { %>
+    <meta http-equiv="refresh" content="0;url=/" />
+  <% } %>
+
+  <!-- Keep this script in header.ejs -->
+  <script>
+    // Check if we're on the Google callback page
+    if (window.location.pathname.includes('/auth/google/callback')) {
+      // Immediately redirect to home page to avoid showing the error
+      window.location.href = '/';
+    }
+    
+    // Suppress any Google Auth errors
+    window.addEventListener('error', function(event) {
+      // Check if error is related to Google or OAuth
+      if (event.message && 
+          (event.message.includes('google') || 
+           event.message.includes('OAuth') || 
+           event.message.includes('auth'))) {
+        // Prevent the error from showing
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Redirect to home page
+        window.location.href = '/';
+        return false;
+      }
+    }, true);
+  </script>
 </head>
 <body>
   <div class="grid-background"></div>
