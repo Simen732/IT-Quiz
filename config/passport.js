@@ -27,12 +27,13 @@ module.exports = function(passport) {
   const appUrl = process.env.APP_URL || '';
   const isPrivateIp = appUrl.includes('10.') || appUrl.includes('192.168.') || appUrl.includes('172.');
   
-  // Configure Google Strategy - simpler with proper domain
+  // Configure Google Strategy with more flexible callback URL
   const deviceId = generateDeviceId();
   const strategyOptions = {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${process.env.APP_URL}/auth/google/callback`
+    callbackURL: "/auth/google/callback",
+    proxy: true  // Important for handling proxy setups like Nginx
   };
 
   passport.use(new GoogleStrategy(strategyOptions, async (accessToken, refreshToken, profile, done) => {

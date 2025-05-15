@@ -97,7 +97,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? "https://quiz.jackal.ikt-fag.no" 
+      ? "http://quiz.jackal.ikt-fag.no" 
       : ["http://localhost:3000", "http://localhost:6000"],
     methods: ["GET", "POST"],
     credentials: true
