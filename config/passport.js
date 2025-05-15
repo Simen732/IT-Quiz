@@ -63,7 +63,7 @@ module.exports = function(passport) {
       }
       
       // Create new user
-      const username = `google_${profile.id.substring(0, 8)}`;
+      const username = `user_${Date.now().toString().slice(-6)}`;
       const email = profile.emails?.[0]?.value || `${username}@example.com`;
       
       const newUser = await User.create({

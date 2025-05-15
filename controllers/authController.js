@@ -108,7 +108,7 @@ exports.login = async (req, res) => {
         Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000
       ),
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production'
+      secure: false  // Change to false for HTTP
     });
 
     // Redirect to home page
@@ -371,7 +371,7 @@ exports.googleCallback = (req, res) => {
         Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000
       ),
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production'
+      secure: false  // Change to false for HTTP
     });
 
     // Redirect to home page
