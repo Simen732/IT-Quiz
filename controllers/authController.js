@@ -82,47 +82,54 @@ exports.login = async (req, res) => {
 
     console.log('Login attempt for:', email);
     console.log('User found in DB:', !!user);
-    if (user) {
-      console.log('User has password:', !!user.password);
-      console.log('Password from DB:', user.password);  // Be careful with this in production
-      console.log('Password from form:', password);  // Be careful with this in production
+
+    if (!user) {
+      return res.status(401).render('auth/login', {
+        title: 'Login',
+        error: 'Invalid credentials',
+        user: req.body
+      });
+    }
+
+    console.log('User has password:', !!user.password);
+    console.log('Password from DB:', user.password);  // Be careful with this in production
+    console.log('Password from form:', password);  // Be careful with this in production
+    
+    try {
+      // Verify password
+      const isPasswordValid = await argon2.verify(user.password, password);
+      console.log('Password verification result:', isPasswordValid);
       
-      try {
-        // Verify password
-        const isPasswordValid = await argon2.verify(user.password, password);
-        console.log('Password verification result:', isPasswordValid);
-        
-        if (!isPasswordValid) {
-          return res.status(401).render('auth/login', {
-            title: 'Login',
-            error: 'Invalid credentials',
-            user: req.body
-          });
-        }
-        
-        // Generate JWT token
-        const token = generateToken(user._id);
-
-        // Set JWT as HTTP-only cookie
-        res.cookie('jwt', token, {
-          expires: new Date(
-            Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000
-          ),
-          httpOnly: true,
-          secure: false  // Change to false for HTTP
-        });
-
-        // Redirect to home page
-        res.redirect('/');
-        
-      } catch (err) {
-        console.error('Password verification error:', err);
+      if (!isPasswordValid) {
         return res.status(401).render('auth/login', {
           title: 'Login',
-          error: 'Authentication error occurred',
+          error: 'Invalid credentials',
           user: req.body
         });
       }
+      
+      // Generate JWT token
+      const token = generateToken(user._id);
+
+      // Set JWT as HTTP-only cookie
+      res.cookie('jwt', token, {
+        expires: new Date(
+          Date.now() + parseInt(process.env.JWT_EXPIRES_IN) * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true,
+        secure: false  // Change to false for HTTP
+      });
+
+      // Redirect to home page
+      res.redirect('/');
+      
+    } catch (err) {
+      console.error('Password verification error:', err);
+      return res.status(401).render('auth/login', {
+        title: 'Login',
+        error: 'Authentication error occurred',
+        user: req.body
+      });
     }
   } catch (err) {
     console.error(err);
