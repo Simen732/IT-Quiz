@@ -46,7 +46,19 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Any password hashing middleware would go here if needed
+// Password hashing middleware
+userSchema.pre('save', async function(next) {
+  // Only run this if password was modified
+  if (!this.isModified('password') || !this.password) return next();
+  
+  try {
+    // Hash password with argon2
+    this.password = await argon2.hash(this.password);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
