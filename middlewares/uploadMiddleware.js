@@ -3,10 +3,19 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists with proper permissions
 const uploadsDir = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+  fs.mkdirSync(uploadsDir, { recursive: true, mode: 0o755 });
+  console.log('Created uploads directory:', uploadsDir);
+}
+
+// Log directory status for debugging
+try {
+  fs.accessSync(uploadsDir, fs.constants.W_OK);
+  console.log('Uploads directory is writable:', uploadsDir);
+} catch (err) {
+  console.error('WARNING: Uploads directory is not writable:', uploadsDir, err);
 }
 
 // Configure storage
@@ -22,26 +31,28 @@ const storage = multer.diskStorage({
   }
 });
 
-// Filter for image files only
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const isValidType = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const isValidMime = allowedTypes.test(file.mimetype);
-
-  if (isValidType && isValidMime) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
-  }
-};
-
-// Create upload middleware
+// Make sure multer is properly configured
 const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB max file size
   },
-  fileFilter: fileFilter
+  fileFilter: (req, file, cb) => {
+    // Log the incoming file information
+    console.log('Handling file upload:', file.originalname, file.mimetype);
+    
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const isValidType = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const isValidMime = allowedTypes.test(file.mimetype);
+    
+    console.log('File validation:', { isValidType, isValidMime });
+    
+    if (isValidType && isValidMime) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
 });
 
 module.exports = upload;
