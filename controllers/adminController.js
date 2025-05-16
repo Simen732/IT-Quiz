@@ -37,6 +37,22 @@ exports.getAdminDashboard = async (req, res) => {
   }
 };
 
+exports.getDashboard = async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    const quizzes = await Quiz.find().sort({ createdAt: -1 });
+    
+    res.render('admin/dashboard', {
+      title: 'Admin Dashboard',
+      users,
+      quizzes
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('error', { message: 'Server error' });
+  }
+};
+
 // User management
 exports.getUsersList = async (req, res) => {
   try {
@@ -86,6 +102,41 @@ exports.toggleAdminStatus = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).render('error', { message: 'Noe gikk galt ved endring av bruker-status.' });
+  }
+};
+
+exports.makeAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+    
+    user.role = 'admin';
+    await user.save();
+    
+    res.status(200).json({ status: 'success', message: 'User updated to admin' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Server error' });
+  }
+};
+
+exports.removeAdmin = async (req, res) => {
+  try {
+    // Prevent removing the default admin
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+    
+    if (user.username === 'Simen' && user.email === 'simenwaerstad2@gmail.com') {
+      return res.status(403).json({ status: 'error', message: 'Cannot remove admin status from default admin' });
+    }
+    
+    user.role = 'user';
+    await user.save();
+    
+    res.status(200).json({ status: 'success', message: 'Admin status removed' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Server error' });
   }
 };
 
@@ -147,6 +198,16 @@ exports.getQuizzesList = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).render('error', { message: 'Noe gikk galt ved henting av quizzer.' });
+  }
+};
+
+exports.deleteQuiz = async (req, res) => {
+  try {
+    await Quiz.findByIdAndDelete(req.params.id);
+    res.status(200).json({ status: 'success', message: 'Quiz deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: 'Server error' });
   }
 };
 

@@ -96,7 +96,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
 const quizRoutes = require('./routes/quiz');
-const adminRoutes = require('./routes/admin');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Use routes
 app.use('/', indexRoutes);

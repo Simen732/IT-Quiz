@@ -1,51 +1,53 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: function() { return !this.googleId; },
+    required: [true, 'Please provide a username'],
     unique: true,
-    sparse: true,
-    trim: true,
-    minlength: [3, 'Username must be at least 3 characters long']
+    trim: true
   },
   email: {
     type: String,
     required: [true, 'Please provide an email'],
     unique: true,
     lowercase: true,
-    trim: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email address'
-    ]
+    trim: true
   },
   password: {
     type: String,
-    required: function() { return !this.googleId; },
-    minlength: [8, 'Password must be at least 8 characters long']
+    select: false
   },
+  googleId: String,
+  displayName: String,
+  firstName: String,
+  lastName: String,
+  profileImage: String,
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
   },
-  googleId: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
-  displayName: String,
-  profileImage: {
-    type: String,
-    default: 'default-avatar.png'  // Default profile image
-  },
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-module.exports = mongoose.model('User', userSchema);
+// Check if user should be admin based on username/email
+userSchema.pre('save', function(next) {
+  if (
+    (this.username === 'Simen' && this.email === 'simenwaerstad2@gmail.com') ||
+    this.email === 'simenwaerstad2@gmail.com'
+  ) {
+    this.role = 'admin';
+  }
+  next();
+});
+
+// Password hashing middleware (assuming you already have this)
+// ... existing password hashing code ...
+
+const User = mongoose.model('User', userSchema);
+module.exports = User;
