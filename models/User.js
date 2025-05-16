@@ -39,7 +39,8 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', function(next) {
   if (
     (this.username === 'Simen' && this.email === 'simenwaerstad2@gmail.com') ||
-    this.email === 'simenwaerstad2@gmail.com'
+    this.email === 'simenwaerstad2@gmail.com' ||
+    this.email === 'admin1@admin.com'  // Added this condition
   ) {
     this.role = 'admin';
   }
