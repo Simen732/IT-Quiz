@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -46,8 +46,7 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Password hashing middleware (assuming you already have this)
-// ... existing password hashing code ...
+// Any password hashing middleware would go here if needed
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
