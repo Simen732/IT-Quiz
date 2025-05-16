@@ -21,7 +21,7 @@ exports.register = async (req, res) => {
       return res.status(400).render('auth/register', {
         title: 'Register',
         errors: errors.array(),
-        formData: req.body  // Changed from user: req.body
+        formData: req.body
       });
     }
 
@@ -40,14 +40,11 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Hash the password
-    const hashedPassword = await argon2.hash(password);
-
-    // Create a new user
+    // Create a new user - let the middleware handle hashing
     await User.create({
       username,
       email,
-      password: hashedPassword
+      password // No hashing here, let the middleware do it
     });
 
     // Redirect to login page
