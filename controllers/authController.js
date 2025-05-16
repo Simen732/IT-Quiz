@@ -91,13 +91,30 @@ exports.login = async (req, res) => {
       });
     }
 
+    if (!user.password) {
+      return res.status(401).render('auth/login', {
+        title: 'Login',
+        error: 'This account uses Google authentication. Please log in with Google.',
+        user: req.body
+      });
+    }
+
     console.log('User has password:', !!user.password);
-    console.log('Password from DB:', user.password);  // Be careful with this in production
-    console.log('Password from form:', password);  // Be careful with this in production
-    
+    console.log('Password from DB:', user.password);
+    console.log('Password from form:', password);
+
     try {
-      // Verify password
-      const isPasswordValid = await argon2.verify(user.password, password);
+      // Clean the password string to avoid any potential issues
+      const cleanPassword = String(password).trim();
+      
+      // Add specific argon2 options to match those used during hashing
+      const isPasswordValid = await argon2.verify(user.password, cleanPassword, {
+        type: argon2.argon2id,
+        memoryCost: 65536,  // 64 MB
+        timeCost: 3,        // 3 iterations
+        parallelism: 4      // 4 threads
+      });
+      
       console.log('Password verification result:', isPasswordValid);
       
       if (!isPasswordValid) {
