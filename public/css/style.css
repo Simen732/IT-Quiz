@@ -430,6 +430,110 @@ span.badge[style*="background-color: #21008a"] {
   background-color: rgba(33, 0, 138, 0.1);
 }
 
+/* Admin Panel Specific Styles */
+.admin-dashboard .card,
+.admin-users .card,
+.admin-quizzes .card {
+  background-color: rgba(17, 17, 34, 0.8);
+  border-color: rgba(105, 50, 255, 0.3);
+}
+
+/* Fix table backgrounds in admin */
+.admin-dashboard table,
+.admin-users table,
+.admin-quizzes table {
+  background-color: rgba(17, 17, 34, 0.6);
+  color: var(--text-primary);
+}
+
+/* Fix table header contrast */
+.admin-dashboard table thead th,
+.admin-users table thead th,
+.admin-quizzes table thead th {
+  background-color: rgba(33, 0, 138, 0.4);
+  color: var(--accent-color);
+  border-color: rgba(105, 50, 255, 0.3);
+}
+
+/* Fix table row hover state */
+.admin-dashboard table tbody tr:hover,
+.admin-users table tbody tr:hover,
+.admin-quizzes table tbody tr:hover {
+  background-color: rgba(33, 0, 138, 0.2);
+}
+
+/* Fix admin sidebar */
+.sidebar {
+  background-color: rgba(5, 0, 20, 0.8) !important;
+  border-right: 1px solid rgba(105, 50, 255, 0.2);
+}
+
+.sidebar .nav-link {
+  color: var(--text-primary);
+}
+
+.sidebar .nav-link:hover {
+  background-color: rgba(33, 0, 138, 0.3);
+  color: var(--accent-color);
+}
+
+.sidebar .nav-link.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Fix stat cards in admin dashboard */
+.admin-dashboard .card.text-white {
+  border-color: rgba(105, 50, 255, 0.3);
+}
+
+/* Fix any backgrounds with bg-light class */
+.bg-light {
+  background-color: rgba(17, 17, 34, 0.6) !important;
+  color: var(--text-primary);
+}
+
+/* Fix input fields in admin forms */
+.admin-dashboard input,
+.admin-users input,
+.admin-quizzes input,
+.admin-dashboard select,
+.admin-users select,
+.admin-quizzes select {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: rgba(105, 50, 255, 0.3);
+  color: var(--text-primary);
+}
+
+/* Make sure admin action buttons have good contrast */
+.make-admin, 
+.remove-admin {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Fix pagination in admin pages */
+.admin-dashboard .pagination,
+.admin-users .pagination,
+.admin-quizzes .pagination {
+  background-color: transparent;
+}
+
+.admin-dashboard .pagination .page-link,
+.admin-users .pagination .page-link,
+.admin-quizzes .pagination .page-link {
+  background-color: rgba(17, 17, 34, 0.7);
+  border-color: rgba(105, 50, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.admin-dashboard .pagination .page-item.active .page-link,
+.admin-users .pagination .page-item.active .page-link,
+.admin-quizzes .pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
 /* Subtle animations - reduced */
 @keyframes pulse {
   0% {
