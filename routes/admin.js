@@ -18,4 +18,9 @@ router.post('/users/:id/delete', adminController.deleteUser);
 router.get('/quizzes', adminController.getQuizzesList);
 router.post('/quizzes/:id/toggle-visibility', adminController.toggleQuizVisibility);
 
+// API endpoints for AJAX operations
+router.patch('/users/:id/make-admin', adminController.makeAdmin);
+router.patch('/users/:id/remove-admin', adminController.removeAdmin);
+router.delete('/quizzes/:id', adminController.deleteQuiz);
+
 module.exports = router;

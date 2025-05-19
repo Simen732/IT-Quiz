@@ -96,7 +96,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
 const quizRoutes = require('./routes/quiz');
-const adminRoutes = require('./routes/adminRoutes');
+const adminRoutes = require('./routes/admin');
 
 // Use routes
 app.use('/', indexRoutes);
@@ -116,6 +116,11 @@ app.use((err, req, res, next) => {
 app.get("*", (req, res) => {
     res.render("error", {message: "Siden finnes ikke"});
 }); 
+
+// Add this to your server.js or app.js - check which file is being used
+console.log('Registered routes:', app._router.stack
+  .filter(r => r.route)
+  .map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 
 // Create HTTP server
 const server = http.createServer(app);
