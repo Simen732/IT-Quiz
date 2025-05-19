@@ -21,6 +21,16 @@ exports.getAdminDashboard = async (req, res) => {
       .limit(5)
       .populate('createdBy', 'username');
     
+    // Add debug information
+    console.log('Admin dashboard accessed by:', req.user.username);
+    console.log('Rendering admin dashboard with data:', {
+      userCount,
+      quizCount,
+      questionCount,
+      recentUsers: recentUsers.length,
+      popularQuizzes: popularQuizzes.length
+    });
+    
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
       stats: {
@@ -29,10 +39,12 @@ exports.getAdminDashboard = async (req, res) => {
         questionCount
       },
       recentUsers,
-      popularQuizzes
+      popularQuizzes,
+      users: recentUsers,  // Include this for the users table
+      quizzes: popularQuizzes  // Include this for the quizzes table
     });
   } catch (err) {
-    console.error(err);
+    console.error('Error loading admin dashboard:', err);
     res.status(500).render('error', { message: 'Noe gikk galt ved lasting av admin dashboard.' });
   }
 };
